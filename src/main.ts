@@ -5,7 +5,7 @@ import './style.css';
 import { createObjects } from "./helpers/createObjects";
 import { createCharacter } from "./helpers/createCharacter";
 import { createKeyboardInputs } from "./helpers/keyboardControls";
-import { Euler, Matrix4, Quaternion } from "three";
+import { Euler, Matrix4, Quaternion, Vector3 } from "three";
 import { Vec3 } from "@perplexdotgg/bounce";
 
 const output = document.body.querySelector('.output')!
@@ -21,7 +21,7 @@ render.scene.add(objects3D.suzanneMesh);
 render.scene.add(...objects3D.ballMeshes);
 render.scene.add(objects3D.tableMesh);
 
-const character3D = createCharacter({ physic })
+const character3D = await createCharacter({ physic })
 render.scene.add(character3D.characterMesh);
 
 const { keyboardInputs } = createKeyboardInputs()
@@ -30,26 +30,48 @@ attachTick(({ deltaS }) => {
   physic.world.takeOneStep(deltaS);
 
   {
-    const bodySourceCurrentDirection = new Quaternion(character3D.characterBody.orientation.x, character3D.characterBody.orientation.y, character3D.characterBody.orientation.z, character3D.characterBody.orientation.w)
-    const bodySourceToTopAngle = new Matrix4().makeRotationX(Math.PI / 2)
-    // .makeRotationFromEuler(new Euler(0, 0, Math.PI / 2))
-    const characterDirection = new Euler().setFromQuaternion(bodySourceCurrentDirection)
-
-
-    // const toTop = new Quaternion().setFromAxisAngle({ x: 1, y: 0, z: 0 }, Math.PI / 2)
-
-    const euler = new Euler(1, 0, 0)
-
-    output.innerHTML = JSON.stringify(
-      new Euler().setFromQuaternion(bodySourceCurrentDirection)
-      , undefined, '<br>')
+    const speed = 10000;
+    const rotation = 2500;
 
     character3D.characterBody.clearForces(); // forces persist, clear if needed
 
-    if (keyboardInputs.forward) {
-      const linearForce = new Vec3(euler).scale(10000)
+    const quatTemp = new Quaternion(character3D.characterBody.orientation.x, character3D.characterBody.orientation.y, character3D.characterBody.orientation.z, character3D.characterBody.orientation.w)
+    const eulerTemp = new Euler().setFromQuaternion(quatTemp)
+
+    quatTemp.setFromEuler(eulerTemp)
+    quatTemp.x = 0
+    quatTemp.z = 0
+
+
+    output.innerHTML = JSON.stringify(
+      eulerTemp
+      , undefined, '<br>')
+
+    character3D.characterBody.orientation.set(
+      quatTemp
+    )
+
+
+
+    if (keyboardInputs.left || keyboardInputs.right) {
+      const localDirection = new Vector3(
+        0,
+        keyboardInputs.left ? 1 : -1,
+        0,
+      )
+      const worldDirection = localDirection.clone().applyQuaternion(new Quaternion(character3D.characterBody.orientation.x, character3D.characterBody.orientation.y, character3D.characterBody.orientation.z, character3D.characterBody.orientation.w));
+      const angularForce = new Vec3(worldDirection).scale(rotation)
+      character3D.characterBody.applyAngularForce(angularForce); // { x: 0, y: 1000, z: 0 }  at center of mass
+    }
+
+    if (keyboardInputs.forward || keyboardInputs.backward) {
+      const localDirection = new Vector3(0, 0, keyboardInputs.forward ? 1 : -1)
+      const worldDirection = localDirection.clone().applyQuaternion(new Quaternion(character3D.characterBody.orientation.x, character3D.characterBody.orientation.y, character3D.characterBody.orientation.z, character3D.characterBody.orientation.w));
+      const linearForce = new Vec3(worldDirection).scale(speed)
       character3D.characterBody.applyLinearForce(linearForce); // { x: 0, y: 1000, z: 0 }  at center of mass
     }
+
+
     // character3D.characterBody.applyAngularForce({ x: 0, y: 0, z: 1000 }); // around local axis
     // character3D.characterBody.applyForce({ x: 0, y: 1000, z: 0 }, { x: 0, y: 7, z: 0 }); // at world point
     // character3D.characterBody.applyForce({ x: 0, y: 1000, z: 0 }, { x: 0, y: 7, z: 0 }, false); // useLocalFrame
