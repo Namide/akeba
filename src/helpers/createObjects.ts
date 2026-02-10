@@ -37,7 +37,8 @@ export async function createObjects({ physic }: { physic: Physic }) {
 
 
   // create the ground
-  const groundShape = physic.world.createBox({ width: 15, height: 1, depth: 15, convexRadius: 0.01 });
+  const GROUND_SIZE = 30
+  const groundShape = physic.world.createBox({ width: GROUND_SIZE, height: 1, depth: GROUND_SIZE, convexRadius: 0.01 });
   const groundBody = physic.world.createStaticBody({
     shape: groundShape,
     position: { x: 0, y: -0.5, z: 0 },
@@ -46,7 +47,7 @@ export async function createObjects({ physic }: { physic: Physic }) {
     frictionFunction: CoefficientFunctionType.average,
     restitutionFunction: CoefficientFunctionType.average,
   });
-  const groundMesh = new Mesh(new BoxGeometry(15, 1, 15), new MeshLambertMaterial({ color: 0xddff99 }));
+  const groundMesh = new Mesh(new BoxGeometry(GROUND_SIZE, 1, GROUND_SIZE), new MeshLambertMaterial({ color: 0xddff99 }));
   groundMesh.position.set(0, -0.5, 0);
   groundMesh.receiveShadow = true;
 
@@ -74,6 +75,7 @@ export async function createObjects({ physic }: { physic: Physic }) {
 
   return {
     ...createTable({ physic }),
+    ...createGround({ physic }),
 
     suzanneMesh,
     suzanneBody,
@@ -83,6 +85,36 @@ export async function createObjects({ physic }: { physic: Physic }) {
 
     ballMeshes,
     ballBodies,
+  }
+}
+
+function createGround({ physic }: { physic: Physic }) {
+  // create the balls
+  const bumpsMeshes: Mesh[] = [];
+  const bumpsBodies: Body[] = [];
+  for (let i = 0; i < 10; i++) {
+    const radius = 0.5 + Math.random()
+    const x = Math.random() * 20 - 10
+    const z = Math.random() * 20 - 10
+
+    const bumpsShape = physic.world.createSphere({ radius });
+    bumpsBodies.push(physic.world.createStaticBody({
+      shape: bumpsShape,
+      position: { x, y: - radius / 2, z },
+      restitution: 0.4,
+      friction: 0.95,
+      frictionFunction: CoefficientFunctionType.average,
+      restitutionFunction: CoefficientFunctionType.average,
+    }));
+
+    bumpsMeshes.push(new Mesh(new SphereGeometry(bumpsShape.radius, 32, 32), new MeshLambertMaterial({ color: 0x8888ff })));
+    bumpsMeshes[i].position.set(-5 + i * 0.5, 5, 0);
+    bumpsMeshes[i].castShadow = true;
+  }
+
+  return {
+    bumpsBodies,
+    bumpsMeshes
   }
 }
 
