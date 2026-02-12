@@ -10,14 +10,13 @@ import {
 } from 'three';
 import { Physic } from '../physic/Physic';
 import imgSrc from '../assets/uv-checker-map-texture.svg?url'
-import { type attachTick } from './attachTick';
 import { createKeyboardInputs } from './keyboardControls';
 
 export function createCharacterTick({ characterBody, characterMesh }: Awaited<ReturnType<typeof createCharacter>>) {
   const { keyboardInputs, dispose } = createKeyboardInputs()
 
   return {
-    tick: (options: Parameters<typeof attachTick>[0] | undefined) => {
+    tick: (/* options: Parameters<typeof attachTick>[0] | undefined */) => {
       const speed = 10000;
       const rotation = 2500;
 

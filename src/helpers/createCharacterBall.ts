@@ -1,17 +1,12 @@
-import { Vec3 } from '@perplexdotgg/bounce';
 import {
   ConeGeometry,
-  Euler,
   Mesh,
   MeshLambertMaterial,
-  Quaternion,
   SphereGeometry,
   TextureLoader,
-  Vector3,
 } from 'three';
 import { Physic } from '../physic/Physic';
 import imgSrc from '../assets/uv-checker-map-texture.svg?url'
-import { createKeyboardInputs } from './keyboardControls';
 
 export async function createCharacter({ physic }: { physic: Physic }) {
   const characterRadius = 1;

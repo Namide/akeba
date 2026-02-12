@@ -2,10 +2,10 @@ import {
   LoadingManager,
   Mesh,
 } from 'three';
-import { DRACOLoader, GLTFLoader } from 'three/examples/jsm/Addons.js';
+import { GLTFLoader } from 'three/examples/jsm/Addons.js';
 import modelsPath from '../assets/track-01.glb?url';
 
-const assetPath = !!import.meta.env.DEV ? './src/assets/' : './assets/';
+// const assetPath = !!import.meta.env.DEV ? './src/assets/' : './assets/';
 
 export async function loadTrack() {
   const loadingManager = new LoadingManager()
