@@ -7,15 +7,18 @@ import {
   MeshLambertMaterial,
   Quaternion,
   SphereGeometry,
+  TextureLoader,
   Vector3,
 } from 'three';
 import { Physic } from '../physic/Physic';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { loadSuzanne } from './loadSuzanne';
+import { loadTrack } from './loadTrack';
+import imgSrc from '../assets/uv-checker-map-texture.svg?url'
 
 
 // we will call this function once the gltf is loaded, since we load suzanne (the monkey) from the gltf
-export async function createObjects({ physic }: { physic: Physic }) {
+export async function createEntities({ physic }: { physic: Physic }) {
   const suzanneMesh = await loadSuzanne()
 
   const suzanneGeo = (suzanneMesh.geometry as BufferGeometry);
@@ -35,21 +38,41 @@ export async function createObjects({ physic }: { physic: Physic }) {
   suzanneMesh.castShadow = true;
   suzanneMesh.position.set(0, 1.1, 0);
 
-
-  // create the ground
-  const GROUND_SIZE = 30
-  const groundShape = physic.world.createBox({ width: GROUND_SIZE, height: 1, depth: GROUND_SIZE, convexRadius: 0.01 });
-  const groundBody = physic.world.createStaticBody({
-    shape: groundShape,
-    position: { x: 0, y: -0.5, z: 0 },
+  // Track
+  const trackMesh = await loadTrack()
+  const trackGeometry = (trackMesh.geometry as BufferGeometry);
+  const trackShape = physic.world.createTriangleMesh({
+    vertexPositions: trackGeometry.getAttribute("position").array as Float32Array,
+    faceIndices: trackGeometry.getIndex()!.array as Uint32Array,
+  });
+  const trackBody = physic.world.createStaticBody({
+    shape: trackShape,
+    position: { x: 0, y: 0, z: 0 },
     restitution: 0.4,
     friction: 0.95,
     frictionFunction: CoefficientFunctionType.average,
     restitutionFunction: CoefficientFunctionType.average,
   });
-  const groundMesh = new Mesh(new BoxGeometry(GROUND_SIZE, 1, GROUND_SIZE), new MeshLambertMaterial({ color: 0xddff99 }));
-  groundMesh.position.set(0, -0.5, 0);
-  groundMesh.receiveShadow = true;
+  const textureLoader = new TextureLoader()
+  const texture = await textureLoader.loadAsync(imgSrc)
+  trackMesh.material = new MeshLambertMaterial({ map: texture, color: 0xddff99 });
+  trackMesh.receiveShadow = true;
+  trackMesh.position.set(0, 0, 0);
+
+  // create the ground
+  // const GROUND_SIZE = 30
+  // const groundShape = physic.world.createBox({ width: GROUND_SIZE, height: 1, depth: GROUND_SIZE, convexRadius: 0.01 });
+  // const groundBody = physic.world.createStaticBody({
+  //   shape: groundShape,
+  //   position: { x: 0, y: -0.5, z: 0 },
+  //   restitution: 0.4,
+  //   friction: 0.95,
+  //   frictionFunction: CoefficientFunctionType.average,
+  //   restitutionFunction: CoefficientFunctionType.average,
+  // });
+  // const groundMesh = new Mesh(new BoxGeometry(GROUND_SIZE, 1, GROUND_SIZE), new MeshLambertMaterial({ color: 0xddff99 }));
+  // groundMesh.position.set(0, -0.5, 0);
+  // groundMesh.receiveShadow = true;
 
 
   // create the balls
@@ -73,18 +96,45 @@ export async function createObjects({ physic }: { physic: Physic }) {
     ballMeshes[i].castShadow = true;
   }
 
+  const { tableMesh, tableBody } = createTable({ physic })
+  const { bumpsMeshes, bumpsBodies } = createGround({ physic })
+
+
   return {
-    ...createTable({ physic }),
-    ...createGround({ physic }),
+    meshes: [
+      suzanneMesh,
+      // groundMesh,
+      ...ballMeshes,
+      trackMesh,
+      tableMesh,
+      ...bumpsMeshes
+    ],
+    tick: () => {
+      suzanneMesh.position.set(suzanneBody.position.x, suzanneBody.position.y, suzanneBody.position.z);
+      suzanneMesh.quaternion.set(suzanneBody.orientation.x, suzanneBody.orientation.y, suzanneBody.orientation.z, suzanneBody.orientation.w);
 
-    suzanneMesh,
-    suzanneBody,
+      // groundMesh.position.set(groundBody.position.x, groundBody.position.y, groundBody.position.z);
+      // groundMesh.quaternion.set(groundBody.orientation.x, groundBody.orientation.y, groundBody.orientation.z, groundBody.orientation.w);
 
-    groundMesh,
-    groundBody,
 
-    ballMeshes,
-    ballBodies,
+      trackMesh.position.set(trackBody.position.x, trackBody.position.y, trackBody.position.z);
+      trackMesh.quaternion.set(trackBody.orientation.x, trackBody.orientation.y, trackBody.orientation.z, trackBody.orientation.w);
+
+      for (let i = 0; i < ballBodies.length; i++) {
+        const ballBody = ballBodies[i];
+        ballMeshes[i].position.set(ballBody.position.x, ballBody.position.y, ballBody.position.z);
+        ballMeshes[i].quaternion.set(ballBody.orientation.x, ballBody.orientation.y, ballBody.orientation.z, ballBody.orientation.w);
+      }
+
+      for (let i = 0; i < bumpsBodies.length; i++) {
+        const bumpsBody = bumpsBodies[i];
+        bumpsMeshes[i].position.set(bumpsBody.position.x, bumpsBody.position.y, bumpsBody.position.z);
+        bumpsMeshes[i].quaternion.set(bumpsBody.orientation.x, bumpsBody.orientation.y, bumpsBody.orientation.z, bumpsBody.orientation.w);
+      }
+
+      tableMesh.position.set(tableBody.position.x, tableBody.position.y, tableBody.position.z);
+      tableMesh.quaternion.set(tableBody.orientation.x, tableBody.orientation.y, tableBody.orientation.z, tableBody.orientation.w);
+    }
   }
 }
 
@@ -182,6 +232,6 @@ function createTable({ physic }: { physic: Physic }) {
 
   return {
     tableMesh,
-    tableBody
+    tableBody,
   }
 }

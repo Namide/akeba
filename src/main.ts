@@ -2,8 +2,10 @@ import { Render } from "./render/Render";
 import { Physic } from "./physic/Physic";
 import { attachTick } from "./helpers/attachTick";
 import './style.css';
-import { createObjects } from "./helpers/createObjects";
-import { createCharacter, createCharacterTick } from "./helpers/createCharacterBall";
+import { createEntities } from "./helpers/createEntities";
+import { createCharacter } from "./helpers/createCharacterBall";
+import { createCameraPosition } from "./helpers/cameraPosition";
+import { createCharacterControls } from "./helpers/createCharacterControls";
 
 // const output = document.body.querySelector('.output')!
 
@@ -12,45 +14,23 @@ render.resize()
 
 const physic = new Physic()
 
-const objects3D = await createObjects({ physic })
-render.scene.add(objects3D.groundMesh);
-render.scene.add(objects3D.suzanneMesh);
-render.scene.add(...objects3D.ballMeshes);
-render.scene.add(objects3D.tableMesh);
-render.scene.add(...objects3D.bumpsMeshes);
+const entities = await createEntities({ physic })
+render.scene.add(...entities.meshes);
 
 const character3D = await createCharacter({ physic })
 render.scene.add(character3D.characterMesh);
 render.scene.add(character3D.characterBodyMesh);
 
-const characterTick = createCharacterTick(character3D)
+const characterTick = createCharacterControls(character3D)
+
+const cameraPosition = createCameraPosition(render.camera, character3D.characterMesh)
 
 attachTick(({ deltaS }) => {
   physic.world.takeOneStep(deltaS);
 
   characterTick.tick()
-
-  objects3D.suzanneMesh.position.set(objects3D.suzanneBody.position.x, objects3D.suzanneBody.position.y, objects3D.suzanneBody.position.z);
-  objects3D.suzanneMesh.quaternion.set(objects3D.suzanneBody.orientation.x, objects3D.suzanneBody.orientation.y, objects3D.suzanneBody.orientation.z, objects3D.suzanneBody.orientation.w);
-
-  objects3D.groundMesh.position.set(objects3D.groundBody.position.x, objects3D.groundBody.position.y, objects3D.groundBody.position.z);
-  objects3D.groundMesh.quaternion.set(objects3D.groundBody.orientation.x, objects3D.groundBody.orientation.y, objects3D.groundBody.orientation.z, objects3D.groundBody.orientation.w);
-
-  for (let i = 0; i < objects3D.ballBodies.length; i++) {
-    const ballBody = objects3D.ballBodies[i];
-    objects3D.ballMeshes[i].position.set(ballBody.position.x, ballBody.position.y, ballBody.position.z);
-    objects3D.ballMeshes[i].quaternion.set(ballBody.orientation.x, ballBody.orientation.y, ballBody.orientation.z, ballBody.orientation.w);
-  }
-
-  for (let i = 0; i < objects3D.bumpsBodies.length; i++) {
-    const bumpsBody = objects3D.bumpsBodies[i];
-    objects3D.bumpsMeshes[i].position.set(bumpsBody.position.x, bumpsBody.position.y, bumpsBody.position.z);
-    objects3D.bumpsMeshes[i].quaternion.set(bumpsBody.orientation.x, bumpsBody.orientation.y, bumpsBody.orientation.z, bumpsBody.orientation.w);
-  }
-
-  objects3D.tableMesh.position.set(objects3D.tableBody.position.x, objects3D.tableBody.position.y, objects3D.tableBody.position.z);
-  objects3D.tableMesh.quaternion.set(objects3D.tableBody.orientation.x, objects3D.tableBody.orientation.y, objects3D.tableBody.orientation.z, objects3D.tableBody.orientation.w);
-
+  cameraPosition.tick()
+  entities.tick()
 
   render.render()
 })
