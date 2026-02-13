@@ -2,6 +2,7 @@ import { Euler, Quaternion, Vector3 } from "three";
 import { createKeyboardInputs } from "./keyboardControls";
 import { Vec3 } from "@perplexdotgg/bounce";
 import { createCharacter } from "./createCharacterBall";
+import { log } from "./log";
 
 const output = document.body.querySelector('.output')!
 
@@ -10,15 +11,16 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
 
   return {
     tick: () => {
-      const speed = 100000;
+      const speed = 1000000;
       const rotation = 10000;
 
       const velocityDirection = new Vector3(characterBody.linearVelocity.x, characterBody.linearVelocity.y, characterBody.linearVelocity.z)
       const velocityPower = velocityDirection.length()
 
+      // log('velocity: ' + velocityPower)
+
       characterBody.clearForces(); // forces persist, clear if needed
 
-      output.innerHTML = `${velocityDirection.x.toFixed(2)}<br>${velocityDirection.y.toFixed(2)}<br>${velocityDirection.z.toFixed(2)}`
 
 
       // const quatTemp = new Quaternion(characterBody.orientation.x, characterBody.orientation.y, characterBody.orientation.z, characterBody.orientation.w)

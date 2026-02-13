@@ -9,7 +9,7 @@ import { Physic } from '../physic/Physic';
 import imgSrc from '../assets/uv-checker-map-texture.svg?url'
 
 export async function createCharacter({ physic }: { physic: Physic }) {
-  const characterRadius = 1;
+  const characterRadius = 0.8;
 
   // create the character
   const shape = physic.world.createSphere({
@@ -21,13 +21,25 @@ export async function createCharacter({ physic }: { physic: Physic }) {
     position: [2, 5, 2],
     orientation: [0, 0, 0],
 
+    restitution: 0,
+
+    mass: 5000,
+    // density: 1,
+    friction: 0,
+    // mass:,
+    // restitution
   });
+
+  // log(`mass: ${characterBody.mass}`, `density: ${characterBody.density}`, `friction: ${characterBody.friction}`)
+
   const textureLoader = new TextureLoader()
   const texture = await textureLoader.loadAsync(imgSrc)
 
 
   const characterGeometry = new ConeGeometry(characterRadius, characterRadius * 4, 5, 1)
   characterGeometry.rotateZ(Math.PI / 2)
+  characterGeometry.translate(-1, 0, 0)
+
   const characterMesh = new Mesh(characterGeometry, new MeshLambertMaterial({
     map: texture,
     color: 0xffaa00

@@ -3,7 +3,7 @@ import {
   Mesh,
 } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/Addons.js';
-import modelsPath from '../assets/track-01.glb?url';
+import modelsPath from '../assets/track-03.glb?url';
 
 // const assetPath = !!import.meta.env.DEV ? './src/assets/' : './assets/';
 

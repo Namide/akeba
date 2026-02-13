@@ -14,8 +14,8 @@ export function createCameraPosition(camera: PerspectiveCamera, character: Mesh)
       camera.position.copy(
         character.position
           .clone()
-          .sub(perpendicular.clone().normalize().multiplyScalar(7))
-          .add(new Vector3(0, 3, 0))
+          .sub(perpendicular.clone().normalize().multiplyScalar(4))
+          .add(new Vector3(0, 2, 0))
       )
       camera.lookAt(camera.position.clone().add(perpendicular))
     }

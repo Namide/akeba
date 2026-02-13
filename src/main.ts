@@ -7,8 +7,6 @@ import { createCharacter } from "./helpers/createCharacterBall";
 import { createCameraPosition } from "./helpers/cameraPosition";
 import { createCharacterControls } from "./helpers/createCharacterControls";
 
-// const output = document.body.querySelector('.output')!
-
 const render = new Render(document.body.querySelector('canvas')!)
 render.resize()
 

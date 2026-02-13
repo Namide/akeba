@@ -48,7 +48,8 @@ export async function createEntities({ physic }: { physic: Physic }) {
   const trackBody = physic.world.createStaticBody({
     shape: trackShape,
     position: { x: 0, y: 0, z: 0 },
-    restitution: 0.4,
+
+    restitution: 0, // Bounce
     friction: 0.95,
     frictionFunction: CoefficientFunctionType.average,
     restitutionFunction: CoefficientFunctionType.average,
