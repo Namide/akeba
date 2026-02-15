@@ -1,4 +1,4 @@
-import { Group, Mesh, PerspectiveCamera, Vector3 } from "three";
+import { Mesh, PerspectiveCamera, Vector3 } from "three";
 
 export function createCameraPosition(camera: PerspectiveCamera, character: Mesh) {
   return {

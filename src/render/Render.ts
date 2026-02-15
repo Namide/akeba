@@ -6,7 +6,7 @@ import {
   Scene,
   WebGLRenderer,
 } from 'three';
-import { resizeRendererToDisplaySize } from '../helpers/responsiveness';
+import { resizeRendererToDisplaySize } from './responsiveness';
 
 export class Render {
   renderer

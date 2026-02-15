@@ -1,18 +1,12 @@
-export function createKeyboardInputs() {
+import type { Inputs } from "./inputs";
 
-  const keyboardInputs = {
-    forward: false,
-    backward: false,
-    left: false,
-    right: false,
-    brake: false,
-  };
+export function createKeyboardInputs(inputs: Inputs) {
 
   document.addEventListener('keydown', keyDownListener, false);
   document.addEventListener('keyup', keyUpListener, false);
 
   return {
-    keyboardInputs,
+    inputs,
     dispose: () => {
       document.removeEventListener('keydown', keyDownListener, false);
       document.removeEventListener('keyup', keyUpListener, false);
@@ -23,22 +17,22 @@ export function createKeyboardInputs() {
     switch (event.code) {
       case 'KeyW':
       case 'ArrowUp':
-        keyboardInputs.forward = true;
+        inputs.forward = true;
         break;
       case 'KeyS':
       case 'ArrowDown':
-        keyboardInputs.backward = true;
+        inputs.backward = true;
         break;
       case 'KeyA':
       case 'ArrowLeft':
-        keyboardInputs.left = true;
+        inputs.left = true;
         break;
       case 'KeyD':
       case 'ArrowRight':
-        keyboardInputs.right = true;
+        inputs.right = true;
         break;
       case 'Space':
-        keyboardInputs.brake = true;
+        inputs.brake = true;
         break;
     }
   }
@@ -47,22 +41,22 @@ export function createKeyboardInputs() {
     switch (event.code) {
       case 'KeyW':
       case 'ArrowUp':
-        keyboardInputs.forward = false;
+        inputs.forward = false;
         break;
       case 'KeyS':
       case 'ArrowDown':
-        keyboardInputs.backward = false;
+        inputs.backward = false;
         break;
       case 'KeyA':
       case 'ArrowLeft':
-        keyboardInputs.left = false;
+        inputs.left = false;
         break;
       case 'KeyD':
       case 'ArrowRight':
-        keyboardInputs.right = false;
+        inputs.right = false;
         break;
       case 'Space':
-        keyboardInputs.brake = false;
+        inputs.brake = false;
         break;
     }
   }

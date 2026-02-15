@@ -1,7 +1,6 @@
 import {
   BoxGeometry,
   ConeGeometry,
-  Group,
   Mesh,
   MeshLambertMaterial,
   SphereGeometry,

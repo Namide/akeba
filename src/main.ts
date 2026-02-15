@@ -2,10 +2,10 @@ import { Render } from "./render/Render";
 import { Physic } from "./physic/Physic";
 import { attachTick } from "./helpers/attachTick";
 import './style.css';
-import { createEntities } from "./helpers/createEntities";
-import { createCharacter } from "./helpers/createCharacterBall";
-import { createCameraPosition } from "./helpers/cameraPosition";
-import { createCharacterControls } from "./helpers/createCharacterControls";
+import { createEntities } from "./entities/createEntities";
+import { createCharacter } from "./entities/createCharacterBall";
+import { createCameraPosition } from "./render/cameraPosition";
+import { createCharacterControls } from "./gameplay/createCharacterControls";
 
 const render = new Render(document.body.querySelector('canvas')!)
 render.resize()

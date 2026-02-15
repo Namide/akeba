@@ -1,14 +1,15 @@
-import { Euler, Quaternion, Vector3 } from "three";
-import { createKeyboardInputs } from "./keyboardControls";
+import { Vector3 } from "three";
+import { createKeyboardInputs } from "../inputs/keyboardControls";
 import { Vec3 } from "@perplexdotgg/bounce";
-import { createCharacter } from "./createCharacterBall";
-import { log } from "./log";
+import { createCharacter } from "../entities/createCharacterBall";
+import { log } from "../helpers/log";
 import { Physic } from "../physic/Physic";
 import { physicGroupFlags } from "../physic/physicGroupFlags";
+import { createInputs } from "../inputs/inputs";
+import { createGamepadInputs } from "../inputs/gamepadControls";
 
 const output = document.body.querySelector('.output')!
 
-const LEVER_ANGLE = 0.5 // 0 = not, 1 = perpendicular
 const MAX_VELOCITY = 200
 const TURN_ABILITY = 2 // 0 = not, 1 = instant
 const BRAKE_TURN_ABILITY = 3.5
@@ -19,7 +20,9 @@ const FLY_HEIGHT = 0
 const UP = new Vector3(0, 1, 0)
 
 export function createCharacterControls({ characterBody, characterBodyMesh, characterMesh, characterBaseMesh, physic }: Awaited<ReturnType<typeof createCharacter>> & { physic: Physic }) {
-  const { keyboardInputs, dispose } = createKeyboardInputs()
+  const inputs = createInputs()
+  const { dispose: disposeKeyboard } = createKeyboardInputs(inputs)
+  const { tick: tickGamepad } = createGamepadInputs(inputs)
 
   const playerDirection = new Vector3(-1, 0, 0)
   const groundNormal = new Vector3()
@@ -31,6 +34,8 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
 
       characterBody.clearForces();
 
+      tickGamepad()
+
       updatePhysicDirection(physicVelocity, characterBody)
       // physicVelocity = physicVelocity.length()
 
@@ -41,9 +46,9 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
 
       // nextPlayerVelocity.copy(playerDirection)
 
-      const turn = deltaS * (keyboardInputs.brake ? BRAKE_TURN_ABILITY : TURN_ABILITY)
+      const turn = deltaS * (inputs.brake ? BRAKE_TURN_ABILITY : TURN_ABILITY)
 
-      if (keyboardInputs.left) {
+      if (inputs.left) {
         const perpendicular = new Vector3()
           .crossVectors({ x: 0, y: 1, z: 0 }, playerDirection);
 
@@ -52,7 +57,7 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
 
         // ---
         // force.add(perpendicularRotation);
-      } else if (keyboardInputs.right) {
+      } else if (inputs.right) {
         const perpendicular = new Vector3()
           .crossVectors({ x: 0, y: -1, z: 0 }, playerDirection);
 
@@ -63,10 +68,10 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
       }
 
       let nextSpeed = physicVelocity.length()
-      if (keyboardInputs.forward) {
+      if (inputs.forward) {
         // nextPlayerVelocity.multiplyScalar(MAX_VELOCITY)
         nextSpeed = MAX_VELOCITY
-      } else if (keyboardInputs.backward) {
+      } else if (inputs.backward) {
         // nextPlayerVelocity.set(0, 0, 0)
         nextSpeed = 0
         // force.sub(playerDirection.normalize().multiplyScalar(MAX_VELOCITY / 2))
@@ -75,7 +80,7 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
       nextPlayerVelocity.copy(playerDirection).multiplyScalar(nextSpeed)
       const force = new Vector3()
         .subVectors(nextPlayerVelocity, physicVelocity)
-        .multiplyScalar(keyboardInputs.brake ? BRAKE_REACTIVITY : REACTIVITY)
+        .multiplyScalar(inputs.brake ? BRAKE_REACTIVITY : REACTIVITY)
 
       characterBody.applyLinearForce(new Vec3(force));
 
@@ -123,7 +128,9 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
         'lookAt:' + JSON.stringify(characterMesh.getWorldDirection(new Vector3()).toArray().map(n => n.toFixed(2)).join(', ')),
       )
     },
-    dispose
+    dispose: () => {
+      disposeKeyboard()
+    }
   }
 }
 

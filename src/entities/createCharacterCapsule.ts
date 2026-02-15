@@ -10,7 +10,7 @@ import {
 } from 'three';
 import { Physic } from '../physic/Physic';
 import imgSrc from '../assets/uv-checker-map-texture.svg?url'
-import { createKeyboardInputs } from './keyboardControls';
+import { createKeyboardInputs } from '../inputs/keyboardControls';
 
 export function createCharacterTick({ characterBody, characterMesh }: Awaited<ReturnType<typeof createCharacter>>) {
   const { keyboardInputs, dispose } = createKeyboardInputs()

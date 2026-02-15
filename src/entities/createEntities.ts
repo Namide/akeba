@@ -13,8 +13,8 @@ import {
 } from 'three';
 import { Physic } from '../physic/Physic';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { loadSuzanne } from './loadSuzanne';
-import { loadTrack } from './loadTrack';
+import { loadSuzanne } from '../render/loadSuzanne';
+import { loadTrack } from '../render/loadTrack';
 import imgSrc from '../assets/uv-checker-map-texture.svg?url'
 import { physicGroupFlags } from '../physic/physicGroupFlags';
 
