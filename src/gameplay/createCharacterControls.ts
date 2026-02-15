@@ -4,17 +4,17 @@ import { Vec3 } from "@perplexdotgg/bounce";
 import { createCharacter } from "../entities/createCharacterBall";
 import { log } from "../helpers/log";
 import { Physic } from "../physic/Physic";
-import { physicGroupFlags } from "../physic/physicGroupFlags";
 import { createInputs } from "../inputs/inputs";
 import { createGamepadInputs } from "../inputs/gamepadControls";
+import { rigidBody, updateWorld } from "crashcat";
 
 const output = document.body.querySelector('.output')!
 
 const MAX_VELOCITY = 200
 const TURN_ABILITY = 2 // 0 = not, 1 = instant
 const BRAKE_TURN_ABILITY = 3.5
-const REACTIVITY = 500000
-const BRAKE_REACTIVITY = 100000
+const REACTIVITY = 5
+const BRAKE_REACTIVITY = 1
 const FLY_HEIGHT = 0
 
 const UP = new Vector3(0, 1, 0)
@@ -32,7 +32,7 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
   return {
     tick: ({ deltaS }: { deltaS: number }) => {
 
-      characterBody.clearForces();
+      // characterBody.clearForces();
 
       tickGamepad()
 
@@ -81,14 +81,15 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
       const force = new Vector3()
         .subVectors(nextPlayerVelocity, physicVelocity)
         .multiplyScalar(inputs.brake ? BRAKE_REACTIVITY : REACTIVITY)
+      force.y = 0
 
-      characterBody.applyLinearForce(new Vec3(force));
+      rigidBody.addForceAtPosition(physic.world, characterBody, force.toArray(), characterBody.position, true)
 
       // Square
       const oldCameraLookAt = characterBaseMesh.getWorldDirection(new Vector3())
       const perpendicularDirectionCamera = new Vector3()
         .crossVectors(UP, playerDirection.normalize());
-      characterBaseMesh.position.lerp(characterBody.position, deltaS * 36);
+      characterBaseMesh.position.lerp({ x: characterBody.position[0], y: characterBody.position[1], z: characterBody.position[2] }, deltaS * 36);
       characterBaseMesh.lookAt(
         characterBaseMesh.position.clone().add(oldCameraLookAt)
           .lerp(
@@ -102,9 +103,9 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
         .crossVectors(groundNormal, playerDirection);
       const oldShipLookAt = characterMesh.getWorldDirection(new Vector3())
       // characterMesh.position.lerp(characterBody.position, deltaS * 36)
-      characterMesh.position.x += (characterBody.position.x - characterMesh.position.x) * 130 * deltaS
-      characterMesh.position.y += (characterBody.position.y + FLY_HEIGHT - characterMesh.position.y) * 115 * deltaS
-      characterMesh.position.z += (characterBody.position.z - characterMesh.position.z) * 130 * deltaS
+      characterMesh.position.x += (characterBody.position[0] - characterMesh.position.x) * 130 * deltaS
+      characterMesh.position.y += (characterBody.position[1] + FLY_HEIGHT - characterMesh.position.y) * 115 * deltaS
+      characterMesh.position.z += (characterBody.position[2] - characterMesh.position.z) * 130 * deltaS
       // characterMesh.position.lerp(characterBody.position, deltaS * 36)
       // characterBody.position.x, characterBody.position.y, characterBody.position.z
       characterMesh.up.lerp(groundNormal, 14 * deltaS)
@@ -116,8 +117,8 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
       );
 
       // Ball
-      characterBodyMesh.position.set(characterBody.position.x, characterBody.position.y, characterBody.position.z);
-      characterBodyMesh.quaternion.set(characterBody.orientation.x, characterBody.orientation.y, characterBody.orientation.z, characterBody.orientation.w);
+      characterBodyMesh.position.set(...characterBody.position);
+      characterBodyMesh.quaternion.set(...characterBody.quaternion);
 
       log(
         'physic velocity: ' + JSON.stringify(physicVelocity.toArray().map(n => n.toFixed(2)).join(', ')),
@@ -139,25 +140,28 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
 }
 
 function updateGroundNormal(groundNormal: Vector3, physic: Physic, characterBody: Parameters<typeof createCharacterControls>[0]['characterBody']) {
-  groundNormal.set(0, 0, 0)
-  for (const manifold of physic.world.iterateContactManifolds(characterBody)) {
-    const otherBody = manifold.bodyA === characterBody ? manifold.bodyB : manifold.bodyA;
-    if (otherBody?.belongsToGroups === physicGroupFlags.Ground) {
-      if (otherBody === manifold.bodyB) {
-        groundNormal.sub(manifold.worldSpaceNormal)
-      } else {
-        groundNormal.add(manifold.worldSpaceNormal)
-      }
-    }
-  }
-  if (groundNormal.length() < 0.1) {
-    groundNormal.copy(UP)
-  } else {
-    groundNormal.normalize()
-  }
+  // groundNormal.set(0, 0, 0)
+  // for (const manifold of physic.world.iterateContactManifolds(characterBody)) {
+  //   const otherBody = manifold.bodyA === characterBody ? manifold.bodyB : manifold.bodyA;
+  //   if (otherBody?.belongsToGroups === physicGroupFlags.Ground) {
+  //     if (otherBody === manifold.bodyB) {
+  //       groundNormal.sub(manifold.worldSpaceNormal)
+  //     } else {
+  //       groundNormal.add(manifold.worldSpaceNormal)
+  //     }
+  //   }
+  // }
+  // if (groundNormal.length() < 0.1) {
+  //   groundNormal.copy(UP)
+  // } else {
+  //   groundNormal.normalize()
+  // }
+
+
+  groundNormal.copy(UP)
 }
 
 function updatePhysicDirection(physicVelocity: Vector3, characterBody: Parameters<typeof createCharacterControls>[0]['characterBody']) {
-  const { x, y, z } = characterBody.linearVelocity
+  const [x, y, z] = rigidBody.getVelocityAtPoint([0, 0, 0], characterBody, characterBody.position) // characterBody.linearVelocity
   physicVelocity.set(x, y, z)
 }

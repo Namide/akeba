@@ -6,30 +6,34 @@ import {
   SphereGeometry,
   TextureLoader,
 } from 'three';
-import { Physic } from '../physic/Physic';
+import { quat, vec3 } from 'mathcat';
+import { MotionQuality, MotionType, rigidBody, sphere } from 'crashcat';
+import { OBJECT_LAYER_MOVING, Physic } from '../physic/Physic';
 import imgSrc from '../assets/uv-checker-map-texture.svg?url'
 
 export async function createCharacter({ physic }: { physic: Physic }) {
   const characterRadius = 0.8;
 
   // create the character
-  const shape = physic.world.createSphere({
+  const shape = sphere.create({
     radius: characterRadius,
   })
 
-  const characterBody = physic.world.createDynamicBody({
+  const characterBody = rigidBody.create(physic.world, {
     shape,
-    position: [2, 5, 2],
-    orientation: [0, 0, 0],
+
+    objectLayer: OBJECT_LAYER_MOVING,
+    motionType: MotionType.DYNAMIC,
+    motionQuality: MotionQuality.LINEAR_CAST,
+
+    position: vec3.fromValues(2, 5, 2),
+    quaternion: quat.create(),
 
     restitution: 0,
-
-    mass: 500000,
-    // density: 1,
     friction: 0,
-    // mass:,
-    // restitution
+    mass: 50
   });
+
 
   // log(`mass: ${characterBody.mass}`, `density: ${characterBody.density}`, `friction: ${characterBody.friction}`)
 
@@ -45,7 +49,7 @@ export async function createCharacter({ physic }: { physic: Physic }) {
     map: texture,
     color: 0xffaa00
   }));
-  console.log(characterMesh.up)
+
   characterMesh.up.set(0, 1, 0)
   characterMesh.castShadow = true;
 

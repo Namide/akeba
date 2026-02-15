@@ -6,6 +6,7 @@ import { createEntities } from "./entities/createEntities";
 import { createCharacter } from "./entities/createCharacterBall";
 import { createCameraPosition } from "./render/cameraPosition";
 import { createCharacterControls } from "./gameplay/createCharacterControls";
+import { updateWorld } from "crashcat";
 
 const render = new Render(document.body.querySelector('canvas')!)
 render.resize()
@@ -25,7 +26,7 @@ const characterTick = createCharacterControls({ ...character3D, physic })
 const cameraPosition = createCameraPosition(render.camera, character3D.characterBaseMesh)
 
 attachTick(({ deltaS }) => {
-  physic.world.takeOneStep(deltaS);
+  updateWorld(physic.world, undefined, deltaS);
 
   characterTick.tick({ deltaS })
   cameraPosition.tick()
