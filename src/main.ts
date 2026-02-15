@@ -18,15 +18,16 @@ render.scene.add(...entities.meshes);
 const character3D = await createCharacter({ physic })
 render.scene.add(character3D.characterMesh);
 render.scene.add(character3D.characterBodyMesh);
+render.scene.add(character3D.characterBaseMesh);
 
-const characterTick = createCharacterControls(character3D)
+const characterTick = createCharacterControls({ ...character3D, physic })
 
-const cameraPosition = createCameraPosition(render.camera, character3D.characterMesh)
+const cameraPosition = createCameraPosition(render.camera, character3D.characterBaseMesh)
 
 attachTick(({ deltaS }) => {
   physic.world.takeOneStep(deltaS);
 
-  characterTick.tick()
+  characterTick.tick({ deltaS })
   cameraPosition.tick()
   entities.tick()
 

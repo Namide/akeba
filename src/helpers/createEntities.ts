@@ -6,6 +6,7 @@ import {
   Mesh,
   MeshLambertMaterial,
   Quaternion,
+  RepeatWrapping,
   SphereGeometry,
   TextureLoader,
   Vector3,
@@ -15,11 +16,15 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { loadSuzanne } from './loadSuzanne';
 import { loadTrack } from './loadTrack';
 import imgSrc from '../assets/uv-checker-map-texture.svg?url'
+import { physicGroupFlags } from '../physic/physicGroupFlags';
+
+const PLANE_GROUND = false
 
 
 // we will call this function once the gltf is loaded, since we load suzanne (the monkey) from the gltf
 export async function createEntities({ physic }: { physic: Physic }) {
   const suzanneMesh = await loadSuzanne()
+  const meshes: Mesh[] = []
 
   const suzanneGeo = (suzanneMesh.geometry as BufferGeometry);
   const suzanneShape = physic.world.createTriangleMesh({
@@ -37,43 +42,70 @@ export async function createEntities({ physic }: { physic: Physic }) {
   suzanneMesh.material = new MeshLambertMaterial({ color: 0xff88aa });
   suzanneMesh.castShadow = true;
   suzanneMesh.position.set(0, 1.1, 0);
+  meshes.push(suzanneMesh)
 
-  // Track
-  const trackMesh = await loadTrack()
-  const trackGeometry = (trackMesh.geometry as BufferGeometry);
-  const trackShape = physic.world.createTriangleMesh({
-    vertexPositions: trackGeometry.getAttribute("position").array as Float32Array,
-    faceIndices: trackGeometry.getIndex()!.array as Uint32Array,
-  });
-  const trackBody = physic.world.createStaticBody({
-    shape: trackShape,
-    position: { x: 0, y: 0, z: 0 },
+  if (PLANE_GROUND) {
+    // create the ground
+    const GROUND_SIZE = 1000
+    const groundShape = physic.world.createBox({ width: GROUND_SIZE, height: 1, depth: GROUND_SIZE, convexRadius: 0.01 });
+    const groundBody = physic.world.createStaticBody({
+      shape: groundShape,
+      position: { x: 0, y: -0.5, z: 0 },
+      restitution: 0.4,
+      friction: 0.95,
+      frictionFunction: CoefficientFunctionType.average,
+      restitutionFunction: CoefficientFunctionType.average,
+    });
 
-    restitution: 0, // Bounce
-    friction: 0.95,
-    frictionFunction: CoefficientFunctionType.average,
-    restitutionFunction: CoefficientFunctionType.average,
-  });
-  const textureLoader = new TextureLoader()
-  const texture = await textureLoader.loadAsync(imgSrc)
-  trackMesh.material = new MeshLambertMaterial({ map: texture, color: 0xddff99 });
-  trackMesh.receiveShadow = true;
-  trackMesh.position.set(0, 0, 0);
 
-  // create the ground
-  // const GROUND_SIZE = 30
-  // const groundShape = physic.world.createBox({ width: GROUND_SIZE, height: 1, depth: GROUND_SIZE, convexRadius: 0.01 });
-  // const groundBody = physic.world.createStaticBody({
-  //   shape: groundShape,
-  //   position: { x: 0, y: -0.5, z: 0 },
-  //   restitution: 0.4,
-  //   friction: 0.95,
-  //   frictionFunction: CoefficientFunctionType.average,
-  //   restitutionFunction: CoefficientFunctionType.average,
-  // });
-  // const groundMesh = new Mesh(new BoxGeometry(GROUND_SIZE, 1, GROUND_SIZE), new MeshLambertMaterial({ color: 0xddff99 }));
-  // groundMesh.position.set(0, -0.5, 0);
-  // groundMesh.receiveShadow = true;
+    const textureLoader = new TextureLoader()
+    const texture = await textureLoader.loadAsync(imgSrc)
+    // texture.matrix.makeScale(0.0001, 0.0001)
+    // texture.matrix.setUvTransform(0, 0, 0.001, 0.001, 0, 0, 0)
+    texture.wrapS = RepeatWrapping
+    texture.wrapT = RepeatWrapping
+    texture.repeat.set(GROUND_SIZE / 100, GROUND_SIZE / 100)
+    // texture.updateMatrix()
+    const groundMesh = new Mesh(new BoxGeometry(GROUND_SIZE, 1, GROUND_SIZE), new MeshLambertMaterial({ map: texture, color: 0xddff99 }));
+    groundMesh.position.set(0, -0.5, 0);
+    groundMesh.receiveShadow = true;
+
+    groundMesh.position.set(groundBody.position.x, groundBody.position.y, groundBody.position.z);
+    groundMesh.quaternion.set(groundBody.orientation.x, groundBody.orientation.y, groundBody.orientation.z, groundBody.orientation.w);
+
+    meshes.push(groundMesh)
+  } else {
+
+    // Track
+    const trackMesh = await loadTrack()
+    const trackGeometry = (trackMesh.geometry as BufferGeometry);
+    const trackShape = physic.world.createTriangleMesh({
+      vertexPositions: trackGeometry.getAttribute("position").array as Float32Array,
+      faceIndices: trackGeometry.getIndex()!.array as Uint32Array,
+    });
+    const trackBody = physic.world.createStaticBody({
+      shape: trackShape,
+      position: { x: 0, y: 0, z: 0 },
+      belongsToGroups: physicGroupFlags.Ground,
+
+      restitution: 0, // Bounce
+      friction: 0.95,
+      frictionFunction: CoefficientFunctionType.average,
+      restitutionFunction: CoefficientFunctionType.average,
+    });
+    const textureLoader = new TextureLoader()
+    const texture = await textureLoader.loadAsync(imgSrc)
+    trackMesh.material = new MeshLambertMaterial({ map: texture, color: 0xddff99 });
+    trackMesh.receiveShadow = true;
+    trackMesh.position.set(0, 0, 0);
+
+    trackMesh.position.set(trackBody.position.x, trackBody.position.y, trackBody.position.z);
+    trackMesh.quaternion.set(trackBody.orientation.x, trackBody.orientation.y, trackBody.orientation.z, trackBody.orientation.w);
+
+
+    meshes.push(trackMesh)
+  }
+
 
 
   // create the balls
@@ -96,20 +128,16 @@ export async function createEntities({ physic }: { physic: Physic }) {
     ballMeshes[i].position.set(-5 + i * 0.5, 5, 0);
     ballMeshes[i].castShadow = true;
   }
+  meshes.push(...ballMeshes)
 
   const { tableMesh, tableBody } = createTable({ physic })
+  meshes.push(tableMesh)
   const { bumpsMeshes, bumpsBodies } = createGround({ physic })
+  meshes.push(...bumpsMeshes)
 
 
   return {
-    meshes: [
-      suzanneMesh,
-      // groundMesh,
-      ...ballMeshes,
-      trackMesh,
-      tableMesh,
-      ...bumpsMeshes
-    ],
+    meshes,
     tick: () => {
       suzanneMesh.position.set(suzanneBody.position.x, suzanneBody.position.y, suzanneBody.position.z);
       suzanneMesh.quaternion.set(suzanneBody.orientation.x, suzanneBody.orientation.y, suzanneBody.orientation.z, suzanneBody.orientation.w);
@@ -118,8 +146,8 @@ export async function createEntities({ physic }: { physic: Physic }) {
       // groundMesh.quaternion.set(groundBody.orientation.x, groundBody.orientation.y, groundBody.orientation.z, groundBody.orientation.w);
 
 
-      trackMesh.position.set(trackBody.position.x, trackBody.position.y, trackBody.position.z);
-      trackMesh.quaternion.set(trackBody.orientation.x, trackBody.orientation.y, trackBody.orientation.z, trackBody.orientation.w);
+      // trackMesh.position.set(trackBody.position.x, trackBody.position.y, trackBody.position.z);
+      // trackMesh.quaternion.set(trackBody.orientation.x, trackBody.orientation.y, trackBody.orientation.z, trackBody.orientation.w);
 
       for (let i = 0; i < ballBodies.length; i++) {
         const ballBody = ballBodies[i];

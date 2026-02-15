@@ -1,5 +1,7 @@
 import {
+  BoxGeometry,
   ConeGeometry,
+  Group,
   Mesh,
   MeshLambertMaterial,
   SphereGeometry,
@@ -23,7 +25,7 @@ export async function createCharacter({ physic }: { physic: Physic }) {
 
     restitution: 0,
 
-    mass: 5000,
+    mass: 500000,
     // density: 1,
     friction: 0,
     // mass:,
@@ -44,6 +46,8 @@ export async function createCharacter({ physic }: { physic: Physic }) {
     map: texture,
     color: 0xffaa00
   }));
+  console.log(characterMesh.up)
+  characterMesh.up.set(0, 1, 0)
   characterMesh.castShadow = true;
 
 
@@ -52,10 +56,16 @@ export async function createCharacter({ physic }: { physic: Physic }) {
     color: 0xFF0077
   }));
 
+  const characterBaseGeometry = new BoxGeometry(characterRadius * 1.9, characterRadius * 1.9, characterRadius * 1.9)
+  const characterBaseMesh = new Mesh(characterBaseGeometry, new MeshLambertMaterial({
+    wireframe: true,
+    color: 0x0077ff
+  }));
 
   return {
     characterBody,
     characterMesh,
-    characterBodyMesh
+    characterBodyMesh,
+    characterBaseMesh
   }
 }

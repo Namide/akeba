@@ -5,7 +5,7 @@ export function createKeyboardInputs() {
     backward: false,
     left: false,
     right: false,
-    jump: false,
+    brake: false,
   };
 
   document.addEventListener('keydown', keyDownListener, false);
@@ -38,7 +38,7 @@ export function createKeyboardInputs() {
         keyboardInputs.right = true;
         break;
       case 'Space':
-        keyboardInputs.jump = true;
+        keyboardInputs.brake = true;
         break;
     }
   }
@@ -62,7 +62,7 @@ export function createKeyboardInputs() {
         keyboardInputs.right = false;
         break;
       case 'Space':
-        keyboardInputs.jump = false;
+        keyboardInputs.brake = false;
         break;
     }
   }
