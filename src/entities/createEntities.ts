@@ -17,6 +17,7 @@ import { loadSuzanne } from '../render/loadSuzanne';
 import { loadTrack } from '../render/loadTrack';
 import imgSrc from '../assets/uv-checker-map-texture.svg?url'
 import { physicGroupFlags } from '../physic/physicGroupFlags';
+import { BufferGeometryUtils } from 'three/examples/jsm/Addons.js';
 
 const PLANE_GROUND = false
 
@@ -78,10 +79,24 @@ export async function createEntities({ physic }: { physic: Physic }) {
 
     // Track
     const trackMesh = await loadTrack()
-    const trackGeometry = (trackMesh.geometry as BufferGeometry);
+    let trackGeometry = trackMesh.geometry.clone() as BufferGeometry
+
+    console.log(trackGeometry.getAttribute("position").array.length)
+
+    trackGeometry.deleteAttribute('uv')
+    trackGeometry.deleteAttribute('normal')
+    trackGeometry = BufferGeometryUtils.mergeVertices(trackGeometry, 1);
+
+    console.log(trackGeometry.getAttribute("position").array.length)
+
     const trackShape = physic.world.createTriangleMesh({
       vertexPositions: trackGeometry.getAttribute("position").array as Float32Array,
       faceIndices: trackGeometry.getIndex()!.array as Uint32Array,
+
+      // https://codeberg.org/perplexdotgg/bounce/src/branch/main/docs/documentation.md#triangle-mesh
+      forceCreateConvexHull: false,
+
+
     });
     const trackBody = physic.world.createStaticBody({
       shape: trackShape,

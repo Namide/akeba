@@ -88,11 +88,12 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
       const oldCameraLookAt = characterBaseMesh.getWorldDirection(new Vector3())
       const perpendicularDirectionCamera = new Vector3()
         .crossVectors(UP, playerDirection.normalize());
-      characterBaseMesh.position.lerp(characterBody.position, 0.25);
+      characterBaseMesh.position.lerp(characterBody.position, deltaS * 36);
       characterBaseMesh.lookAt(
         characterBaseMesh.position.clone().add(oldCameraLookAt)
           .lerp(
-            characterBaseMesh.position.clone().add(perpendicularDirectionCamera), 0.1
+            characterBaseMesh.position.clone().add(perpendicularDirectionCamera),
+            inputs.brake ? 7.2 * deltaS : 11.5 * deltaS
           )
       );
 
@@ -100,19 +101,18 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
       const perpendicularDirectionVehicle = new Vector3()
         .crossVectors(groundNormal, playerDirection);
       const oldShipLookAt = characterMesh.getWorldDirection(new Vector3())
-      // characterMesh.position.lerp(characterBody.position, 0.25)
-      characterMesh.position.x += (characterBody.position.x - characterMesh.position.x) * 0.9
-      characterMesh.position.y += (characterBody.position.y + FLY_HEIGHT - characterMesh.position.y) * 0.8
-      characterMesh.position.z += (characterBody.position.z - characterMesh.position.z) * 0.9
-      // characterMesh.position.lerp(characterBody.position, 0.25)
+      // characterMesh.position.lerp(characterBody.position, deltaS * 36)
+      characterMesh.position.x += (characterBody.position.x - characterMesh.position.x) * 130 * deltaS
+      characterMesh.position.y += (characterBody.position.y + FLY_HEIGHT - characterMesh.position.y) * 115 * deltaS
+      characterMesh.position.z += (characterBody.position.z - characterMesh.position.z) * 130 * deltaS
+      // characterMesh.position.lerp(characterBody.position, deltaS * 36)
       // characterBody.position.x, characterBody.position.y, characterBody.position.z
-      characterMesh.up.lerp(groundNormal, 0.1)
+      characterMesh.up.lerp(groundNormal, 14 * deltaS)
       characterMesh.lookAt(
         characterMesh.position.clone().add(oldShipLookAt)
           .lerp(
-            characterMesh.position.clone().add(perpendicularDirectionVehicle), 0.1
+            characterMesh.position.clone().add(perpendicularDirectionVehicle), 14 * deltaS
           )
-
       );
 
       // Ball
@@ -129,6 +129,7 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
         'force:' + JSON.stringify(force.toArray().map(n => n.toFixed(2)).join(', ')),
         'lookAt:' + JSON.stringify(characterMesh.getWorldDirection(new Vector3()).toArray().map(n => n.toFixed(2)).join(', ')),
         'lookAt:' + JSON.stringify(characterMesh.getWorldDirection(new Vector3()).toArray().map(n => n.toFixed(2)).join(', ')),
+        'deltaS:' + JSON.stringify(deltaS),
       )
     },
     dispose: () => {

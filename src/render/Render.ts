@@ -32,7 +32,7 @@ export class Render {
     this.renderer.shadowMap.type = PCFShadowMap;
     this.scene = new Scene();
 
-    this.camera = new PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 100);
+    this.camera = new PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 1, 1000);
     this.camera.position.set(0, 3, 8);
 
     // ===== 💡 LIGHTS =====

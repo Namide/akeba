@@ -2,18 +2,19 @@ import {
   LoadingManager,
   Mesh,
 } from 'three';
-import { GLTFLoader } from 'three/examples/jsm/Addons.js';
-import modelsPath from '../assets/track-03.glb?url';
+import { DRACOLoader, GLTFLoader } from 'three/examples/jsm/Addons.js';
+import modelsPath from '../assets/track-01.glb?url';
 
-// const assetPath = !!import.meta.env.DEV ? './src/assets/' : './assets/';
+const assetPath = !!import.meta.env.DEV ? './src/assets/' : './assets/';
 
 export async function loadTrack() {
   const loadingManager = new LoadingManager()
 
   const gltfLoader = new GLTFLoader(loadingManager);
-  // const dracoLoader = new DRACOLoader();
-  // dracoLoader.setDecoderPath(assetPath);
-  // gltfLoader.setDRACOLoader(dracoLoader);
+
+  const dracoLoader = new DRACOLoader();
+  dracoLoader.setDecoderPath(assetPath);
+  gltfLoader.setDRACOLoader(dracoLoader);
 
   const gltf = await gltfLoader.loadAsync(modelsPath)
   const trackMesh = await new Promise<Mesh>(resolve => {
