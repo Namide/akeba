@@ -85,27 +85,30 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
       characterBody.applyLinearForce(new Vec3(force));
 
       // Square
+      const oldCameraLookAt = characterBaseMesh.getWorldDirection(new Vector3())
       const perpendicularDirectionCamera = new Vector3()
         .crossVectors(UP, playerDirection.normalize());
-      characterBaseMesh.position.set(characterBody.position.x, characterBody.position.y, characterBody.position.z);
-      characterBaseMesh.lookAt(characterBaseMesh.position.clone().add(perpendicularDirectionCamera));
+      characterBaseMesh.position.lerp(characterBody.position, 0.25);
+      characterBaseMesh.lookAt(
+        characterBaseMesh.position.clone().add(oldCameraLookAt)
+          .lerp(
+            characterBaseMesh.position.clone().add(perpendicularDirectionCamera), 0.1
+          )
+      );
 
       // Ship
       const perpendicularDirectionVehicle = new Vector3()
         .crossVectors(groundNormal, playerDirection);
-      const oldPosition = characterMesh.position
-      const oldLookAt = characterMesh.getWorldDirection(new Vector3())
-
+      const oldShipLookAt = characterMesh.getWorldDirection(new Vector3())
       // characterMesh.position.lerp(characterBody.position, 0.25)
       characterMesh.position.x += (characterBody.position.x - characterMesh.position.x) * 0.9
       characterMesh.position.y += (characterBody.position.y + FLY_HEIGHT - characterMesh.position.y) * 0.8
       characterMesh.position.z += (characterBody.position.z - characterMesh.position.z) * 0.9
-
       // characterMesh.position.lerp(characterBody.position, 0.25)
       // characterBody.position.x, characterBody.position.y, characterBody.position.z
       characterMesh.up.lerp(groundNormal, 0.1)
       characterMesh.lookAt(
-        characterMesh.position.clone().add(oldLookAt)
+        characterMesh.position.clone().add(oldShipLookAt)
           .lerp(
             characterMesh.position.clone().add(perpendicularDirectionVehicle), 0.1
           )
