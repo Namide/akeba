@@ -1,14 +1,13 @@
 import { Vector3 } from "three";
 import { createKeyboardInputs } from "../inputs/keyboardControls";
-import { Vec3 } from "@perplexdotgg/bounce";
 import { createCharacter } from "../entities/createCharacterBall";
 import { log } from "../helpers/log";
 import { Physic } from "../physic/Physic";
 import { createInputs } from "../inputs/inputs";
 import { createGamepadInputs } from "../inputs/gamepadControls";
-import { rigidBody, updateWorld } from "crashcat";
+import { rigidBody } from "crashcat";
 
-const output = document.body.querySelector('.output')!
+// const output = document.body.querySelector('.output')!
 
 const MAX_VELOCITY = 200
 const TURN_ABILITY = 2 // 0 = not, 1 = instant
@@ -40,7 +39,7 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
       // physicVelocity = physicVelocity.length()
 
       // Update ground normal
-      updateGroundNormal(groundNormal, physic, characterBody)
+      updateGroundNormal(groundNormal /* , physic, characterBody */)
 
       // const perpendicularRotation = perpendicular.clone().multiplyScalar(rotation * physicVelocity)
 
@@ -139,7 +138,7 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
   }
 }
 
-function updateGroundNormal(groundNormal: Vector3, physic: Physic, characterBody: Parameters<typeof createCharacterControls>[0]['characterBody']) {
+function updateGroundNormal(groundNormal: Vector3, /*  physic: Physic, characterBody: Parameters<typeof createCharacterControls>[0]['characterBody'] */) {
   // groundNormal.set(0, 0, 0)
   // for (const manifold of physic.world.iterateContactManifolds(characterBody)) {
   //   const otherBody = manifold.bodyA === characterBody ? manifold.bodyB : manifold.bodyA;
