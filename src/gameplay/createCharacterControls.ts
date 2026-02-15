@@ -8,7 +8,7 @@ import { physicGroupFlags } from "../physic/physicGroupFlags";
 import { createInputs } from "../inputs/inputs";
 import { createGamepadInputs } from "../inputs/gamepadControls";
 
-const output = document.body.querySelector('.output')!
+// const output = document.body.querySelector('.output')!
 
 const MAX_VELOCITY = 200
 const TURN_ABILITY = 2 // 0 = not, 1 = instant
