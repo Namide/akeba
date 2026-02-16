@@ -24,13 +24,13 @@ export async function createCharacter({ physic }: { physic: Physic }) {
 
     objectLayer: OBJECT_LAYER_MOVING,
     motionType: MotionType.DYNAMIC,
-    motionQuality: MotionQuality.LINEAR_CAST,
+    motionQuality: MotionQuality.DISCRETE,
 
-    position: vec3.fromValues(2, 5, 2),
+    position: vec3.fromValues(2, 1, 2),
     quaternion: quat.create(),
 
     restitution: 0,
-    friction: 0,
+    friction: 0.5,
     mass: 50
   });
 
@@ -47,7 +47,9 @@ export async function createCharacter({ physic }: { physic: Physic }) {
 
   const characterMesh = new Mesh(characterGeometry, new MeshLambertMaterial({
     map: texture,
-    color: 0xffaa00
+    color: 0xffaa00,
+    opacity: 0.5,
+    transparent: true
   }));
 
   characterMesh.up.set(0, 1, 0)

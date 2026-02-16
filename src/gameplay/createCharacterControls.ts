@@ -1,24 +1,29 @@
-import { Quaternion, Vector3 } from "three";
+import { ArrowHelper, BoxGeometry, Mesh, MeshStandardMaterial, Quaternion, Raycaster, Vector3 } from "three";
 import { createKeyboardInputs } from "../inputs/keyboardControls";
-import { createCharacter } from "../entities/createCharacterBall";
+import { createCharacter } from "../entities/createCharacter";
 import { log } from "../helpers/log";
-import { Physic } from "../physic/Physic";
+import { OBJECT_LAYER_NOT_MOVING, Physic, worldSettings } from "../physic/Physic";
 import { createInputs } from "../inputs/inputs";
 import { createGamepadInputs } from "../inputs/gamepadControls";
-import { rigidBody } from "crashcat";
+import { castRay, CastRayStatus, createClosestCastRayCollector, createDefaultCastRaySettings, filter, RigidBody, rigidBody, sphere } from "crashcat";
+import { vec3 } from "mathcat";
+import { Render } from "../render/Render";
 
 // const output = document.body.querySelector('.output')!
 
 const MAX_VELOCITY = 200
 const TURN_ABILITY = 2 // 0 = not, 1 = instant
 const BRAKE_TURN_ABILITY = 3.5
-const REACTIVITY = 5
-const BRAKE_REACTIVITY = 1
+const REACTIVITY = 0.5
+const BRAKE_REACTIVITY = 0.002
 const FLY_HEIGHT = 0
+const RESISTANCE = 0.98
+const VELOCITY_DECELERATION = 0.8
 
 const UP = new Vector3(0, 1, 0)
+const VECTOR_3 = new Vector3()
 
-export function createCharacterControls({ characterBody, characterBodyMesh, characterMesh, characterBaseMesh, physic }: Awaited<ReturnType<typeof createCharacter>> & { physic: Physic }) {
+export function createCharacterControls({ characterBody, characterBodyMesh, characterMesh, characterBaseMesh, physic, render, trackMesh }: Awaited<ReturnType<typeof createCharacter>> & { physic: Physic, render: Render, trackMesh: Mesh }) {
   const inputs = createInputs()
   const { dispose: disposeKeyboard } = createKeyboardInputs(inputs)
   const { tick: tickGamepad } = createGamepadInputs(inputs)
@@ -26,7 +31,7 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
   const playerDirection = new Vector3(-1, 0, 0)
   const groundNormal = new Vector3()
   const physicVelocity = new Vector3(-1, 0, 0)
-  const nextPlayerVelocity = playerDirection.clone()
+  const thrust = playerDirection.clone()
 
   return {
     tick: ({ deltaS }: { deltaS: number }) => {
@@ -39,11 +44,11 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
       // physicVelocity = physicVelocity.length()
 
       // Update ground normal
-      updateGroundNormal(groundNormal, physic, characterBody)
+      const groundDistance = updateGroundNormal(groundNormal, physic, characterBody, trackMesh)
 
       // const perpendicularRotation = perpendicular.clone().multiplyScalar(rotation * physicVelocity)
 
-      // nextPlayerVelocity.copy(playerDirection)
+      // thrust.copy(playerDirection)
 
       const turn = deltaS * (inputs.brake ? BRAKE_TURN_ABILITY : TURN_ABILITY)
 
@@ -51,7 +56,7 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
         const perpendicular = new Vector3()
           .crossVectors({ x: 0, y: 1, z: 0 }, playerDirection);
 
-        // nextPlayerVelocity.lerp(perpendicular, LEVER_ANGLE)
+        // thrust.lerp(perpendicular, LEVER_ANGLE)
         playerDirection.lerp(perpendicular, turn)
 
         // ---
@@ -60,7 +65,7 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
         const perpendicular = new Vector3()
           .crossVectors({ x: 0, y: -1, z: 0 }, playerDirection);
 
-        // nextPlayerVelocity.lerp(perpendicular, LEVER_ANGLE)
+        // thrust.lerp(perpendicular, LEVER_ANGLE)
         playerDirection.lerp(perpendicular, turn)
         // ---
         // force.sub(perpendicularRotation);
@@ -68,21 +73,41 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
 
       let nextSpeed = physicVelocity.length()
       if (inputs.forward) {
-        // nextPlayerVelocity.multiplyScalar(MAX_VELOCITY)
+        // thrust.multiplyScalar(MAX_VELOCITY)
         nextSpeed = MAX_VELOCITY
       } else if (inputs.backward) {
-        // nextPlayerVelocity.set(0, 0, 0)
+        // thrust.set(0, 0, 0)
         nextSpeed = 0
         // force.sub(playerDirection.normalize().multiplyScalar(MAX_VELOCITY / 2))
       }
 
-      nextPlayerVelocity.copy(playerDirection).multiplyScalar(nextSpeed)
-      const force = new Vector3()
-        .subVectors(nextPlayerVelocity, physicVelocity)
-        .multiplyScalar(inputs.brake ? BRAKE_REACTIVITY : REACTIVITY)
-      force.y = 0
+      thrust.copy(playerDirection).multiplyScalar(nextSpeed)
 
-      rigidBody.addForceAtPosition(physic.world, characterBody, force.toArray(), characterBody.position, true)
+      // if () {
+
+      // }
+      const force = new Vector3()
+        .subVectors(thrust, physicVelocity)
+        .multiplyScalar(inputs.brake ? BRAKE_REACTIVITY : REACTIVITY)
+
+      // Reduce jump
+      // if (physicVelocity.y > 0) {
+      //   force.y = -physicVelocity.y * 4
+
+      //   // Force to go ground
+      // } else if (groundDistance > 0) {
+      const velocityTarget = -groundDistance * 8
+      force.y = velocityTarget - 4 * physicVelocity.y
+
+      // }
+
+
+
+      // .sub(groundNormal.multiplyScalar(groundElasticity))
+
+      // rigidBody.setLinearVelocity(physic.world, characterBody,
+      //   physicVelocity.clone().multiply({ x: RESISTANCE, y: 1, z: RESISTANCE }).toArray())
+      rigidBody.addImpulse(physic.world, characterBody, force.toArray())
 
       // Square
       const oldCameraLookAt = characterBaseMesh.getWorldDirection(new Vector3())
@@ -103,7 +128,7 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
       const oldShipLookAt = characterMesh.getWorldDirection(new Vector3())
       // characterMesh.position.lerp(characterBody.position, deltaS * 36)
       characterMesh.position.x += (characterBody.position[0] - characterMesh.position.x) * 130 * deltaS
-      characterMesh.position.y += (characterBody.position[1] + FLY_HEIGHT - characterMesh.position.y) * 115 * deltaS
+      characterMesh.position.y += (characterBody.position[1] + FLY_HEIGHT - characterMesh.position.y) * 50 * deltaS
       characterMesh.position.z += (characterBody.position[2] - characterMesh.position.z) * 130 * deltaS
       // characterMesh.position.lerp(characterBody.position, deltaS * 36)
       // characterBody.position.x, characterBody.position.y, characterBody.position.z
@@ -121,15 +146,14 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
 
       log(
         'physic velocity: ' + JSON.stringify(physicVelocity.toArray().map(n => n.toFixed(2)).join(', ')),
-        'mesh: ' + characterMesh.getWorldDirection(new Vector3()).toArray().map(n => n.toFixed(2)).join(', '),
         // 'velocity:' + physicVelocity.toFixed(2),
         'ground normal:' + JSON.stringify(groundNormal.toArray().map(n => n.toFixed(2)).join(', ')),
         'player direction:' + JSON.stringify(playerDirection.toArray().map(n => n.toFixed(2)).join(', ')),
-        'player velocity:' + JSON.stringify(nextPlayerVelocity.toArray().map(n => n.toFixed(2)).join(', ')),
+        'player velocity:' + JSON.stringify(thrust.toArray().map(n => n.toFixed(2)).join(', ')),
         'force:' + JSON.stringify(force.toArray().map(n => n.toFixed(2)).join(', ')),
         'lookAt:' + JSON.stringify(characterMesh.getWorldDirection(new Vector3()).toArray().map(n => n.toFixed(2)).join(', ')),
         'lookAt:' + JSON.stringify(characterMesh.getWorldDirection(new Vector3()).toArray().map(n => n.toFixed(2)).join(', ')),
-        'deltaS:' + JSON.stringify(deltaS),
+        'groundDistance: ' + groundDistance
       )
     },
     dispose: () => {
@@ -138,26 +162,64 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
   }
 }
 
-function updateGroundNormal(groundNormal: Vector3, physic: Physic, characterBody: Parameters<typeof createCharacterControls>[0]['characterBody']) {
-  groundNormal.set(0, 0, 0)
+const raycaster = new Raycaster();
+const DOWN = new Vector3(0, -1, 0);
+function updateGroundNormal(groundNormal: Vector3, physic: Physic, characterBody: Parameters<typeof createCharacterControls>[0]['characterBody'], trackMesh: Mesh) {
 
-  const index = characterBody.index
-  const tempVec3 = new Vector3()
-  for (const contact of physic.world.contacts.contacts) {
-    if (contact.bodyIndexA === index) {
-      tempVec3.set(...contact.contactNormal).applyQuaternion(new Quaternion(...physic.world.bodies.pool[contact.bodyIndexB]!.quaternion))
-      groundNormal.sub(tempVec3)
-    } else if (contact.bodyIndexB === index) {
-      tempVec3.set(...contact.contactNormal).applyQuaternion(new Quaternion(...characterBody.quaternion))
-      groundNormal.add(tempVec3)
-    }
-  }
+  const temp = new Vector3(...characterBody.position)
+  let distance = 20
 
-  if (groundNormal.length() < 0.1) {
-    groundNormal.copy(UP)
+  raycaster.set(temp, DOWN);
+  const hits = raycaster.intersectObject(trackMesh, false);
+
+  if (hits.length > 0) {
+    const normal = hits[0].face!.normal.clone()
+      .transformDirection(trackMesh.matrixWorld); // local → world space
+
+    groundNormal.lerp(normal, 0.15);
+    groundNormal.normalize();
+    distance = Math.max(0, hits[0].distance - (characterBody.shape as sphere.SphereShape).radius)
   } else {
-    groundNormal.normalize()
+    // dans les airs
+    groundNormal.lerp(UP, 0.05);
+    groundNormal.normalize();
   }
+
+  return distance
+
+  // ---
+
+  // let meshes = []
+
+  // const index = characterBody.index
+  // const tempVec3 = new Vector3()
+
+  // VECTOR_3.set(0, 0, 0)
+  // for (const contact of physic.world.contacts.contacts) {
+
+  //   if (contact.bodyIndexA === index || contact.bodyIndexB === index) {
+  //     const [point] = contact.contactPoints
+  //     tempVec3.set(...characterBody.position).sub({ x: point.position1[0], y: point.position1[1], z: point.position1[2] })
+  //     VECTOR_3.add(tempVec3)
+  //   }
+
+  // }
+
+  // if (VECTOR_3.length() < 0.001) {
+  //   VECTOR_3.copy(UP)
+  // } else {
+  //   VECTOR_3.normalize()
+
+  //   const mesh = new ArrowHelper(VECTOR_3, new Vector3(...characterBody.position), 2, 0xFFFFFF * Math.random())
+
+
+  //   meshes.push(mesh)
+  // }
+
+  // groundNormal.lerp(VECTOR_3, 0.15)
+  // groundNormal.normalize()
+
+  // return meshes
 }
 
 function updatePhysicDirection(physicVelocity: Vector3, characterBody: Parameters<typeof createCharacterControls>[0]['characterBody']) {

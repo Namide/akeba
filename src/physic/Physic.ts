@@ -2,7 +2,7 @@ import { addBroadphaseLayer, addObjectLayer, createWorld, createWorldSettings, e
 
 registerAll();
 
-const worldSettings = createWorldSettings()
+export const worldSettings = createWorldSettings()
 const BROADPHASE_LAYER_NOT_MOVING = addBroadphaseLayer(worldSettings);
 
 const BROADPHASE_LAYER_MOVING = addBroadphaseLayer(worldSettings);

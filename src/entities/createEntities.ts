@@ -15,6 +15,7 @@ import { BufferGeometryUtils } from 'three/examples/jsm/Addons.js';
 import { box, MotionQuality, MotionType, rigidBody, sphere } from 'crashcat';
 import { createTriangleShape } from '../physic/createTriangleShape';
 import { quat, vec3 } from 'mathcat';
+import { createTrack } from './createTrack';
 
 const PLANE_GROUND = false
 
@@ -70,46 +71,6 @@ export async function createEntities({ physic }: { physic: Physic }) {
     groundMesh.quaternion.set(...groundBody.quaternion);
 
     meshes.push(groundMesh)
-  } else {
-
-    // Track
-    const trackMesh = await loadTrack()
-    let trackGeometry = trackMesh.geometry.clone() as BufferGeometry
-
-    console.log(trackGeometry.getAttribute("position").array.length)
-
-    trackGeometry.deleteAttribute('uv')
-    trackGeometry.deleteAttribute('normal')
-    trackGeometry = BufferGeometryUtils.mergeVertices(trackGeometry, 1);
-
-    console.log(trackGeometry.getAttribute("position").array.length)
-
-    // cos(45°) ≈ 0.707 → plus permissif
-    // cos(30°) ≈ 0.866 → ignore les arêtes dont l'angle entre triangles < 30°
-    // cos(10°) ≈ 0.985 → plus strict, seulement les surfaces quasi-plates
-    const trackShape = createTriangleShape(trackGeometry, { activeEdgeCosThresholdAngle: 0.866 });
-    const trackBody = rigidBody.create(physic.world, {
-      shape: trackShape,
-      objectLayer: OBJECT_LAYER_NOT_MOVING,
-      motionType: MotionType.STATIC,
-      position: vec3.fromValues(0, 0, 0),
-      restitution: 0,
-      friction: 0.95,
-
-      enhancedInternalEdgeRemoval: true,
-      // useManifoldReduction: true,
-    });
-    const textureLoader = new TextureLoader()
-    const texture = await textureLoader.loadAsync(imgSrc)
-    trackMesh.material = new MeshLambertMaterial({ map: texture, color: 0xddff99 });
-    trackMesh.receiveShadow = true;
-    trackMesh.position.set(0, 0, 0);
-
-    trackMesh.position.set(...trackBody.position);
-    trackMesh.quaternion.set(...trackBody.quaternion);
-
-
-    meshes.push(trackMesh)
   }
 
 
