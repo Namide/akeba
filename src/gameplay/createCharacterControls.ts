@@ -1,4 +1,4 @@
-import { Vector3 } from "three";
+import { Quaternion, Vector3 } from "three";
 import { createKeyboardInputs } from "../inputs/keyboardControls";
 import { createCharacter } from "../entities/createCharacterBall";
 import { log } from "../helpers/log";
@@ -39,7 +39,7 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
       // physicVelocity = physicVelocity.length()
 
       // Update ground normal
-      updateGroundNormal(groundNormal /* , physic, characterBody */)
+      updateGroundNormal(groundNormal, physic, characterBody)
 
       // const perpendicularRotation = perpendicular.clone().multiplyScalar(rotation * physicVelocity)
 
@@ -138,26 +138,26 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
   }
 }
 
-function updateGroundNormal(groundNormal: Vector3, /*  physic: Physic, characterBody: Parameters<typeof createCharacterControls>[0]['characterBody'] */) {
-  // groundNormal.set(0, 0, 0)
-  // for (const manifold of physic.world.iterateContactManifolds(characterBody)) {
-  //   const otherBody = manifold.bodyA === characterBody ? manifold.bodyB : manifold.bodyA;
-  //   if (otherBody?.belongsToGroups === physicGroupFlags.Ground) {
-  //     if (otherBody === manifold.bodyB) {
-  //       groundNormal.sub(manifold.worldSpaceNormal)
-  //     } else {
-  //       groundNormal.add(manifold.worldSpaceNormal)
-  //     }
-  //   }
-  // }
-  // if (groundNormal.length() < 0.1) {
-  //   groundNormal.copy(UP)
-  // } else {
-  //   groundNormal.normalize()
-  // }
+function updateGroundNormal(groundNormal: Vector3, physic: Physic, characterBody: Parameters<typeof createCharacterControls>[0]['characterBody']) {
+  groundNormal.set(0, 0, 0)
 
+  const index = characterBody.index
+  const tempVec3 = new Vector3()
+  for (const contact of physic.world.contacts.contacts) {
+    if (contact.bodyIndexA === index) {
+      tempVec3.set(...contact.contactNormal).applyQuaternion(new Quaternion(...physic.world.bodies.pool[contact.bodyIndexB]!.quaternion))
+      groundNormal.sub(tempVec3)
+    } else if (contact.bodyIndexB === index) {
+      tempVec3.set(...contact.contactNormal).applyQuaternion(new Quaternion(...characterBody.quaternion))
+      groundNormal.add(tempVec3)
+    }
+  }
 
-  groundNormal.copy(UP)
+  if (groundNormal.length() < 0.1) {
+    groundNormal.copy(UP)
+  } else {
+    groundNormal.normalize()
+  }
 }
 
 function updatePhysicDirection(physicVelocity: Vector3, characterBody: Parameters<typeof createCharacterControls>[0]['characterBody']) {
