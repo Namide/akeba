@@ -17,8 +17,8 @@ const physic = new Physic()
 const entities = await createEntities({ physic })
 render.scene.add(...entities.meshes);
 
-const { trackMesh } = await createTrack({ physic })
-render.scene.add(trackMesh);
+const { trackMesh, trackMeshes } = await createTrack({ physic })
+render.scene.add(trackMesh, ...trackMeshes);
 
 const character3D = await createCharacter({ physic })
 render.scene.add(character3D.characterMesh);
@@ -30,7 +30,11 @@ const characterTick = createCharacterControls({ ...character3D, physic, render, 
 const cameraPosition = createCameraPosition(render.camera, character3D.characterBaseMesh)
 
 attachTick(({ deltaS }) => {
-  updateWorld(physic.world, undefined, deltaS);
+  const steps = 1
+
+  for (let i = 0; i < steps; i++) {
+    updateWorld(physic.world, undefined, deltaS / steps);
+  }
 
   characterTick.tick({ deltaS })
   cameraPosition.tick()

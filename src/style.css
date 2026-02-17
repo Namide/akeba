@@ -30,6 +30,7 @@ body,
 canvas {
   outline: none;
   position: absolute;
+  image-rendering: pixelated;
 }
 
 .output {

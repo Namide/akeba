@@ -10,6 +10,7 @@ import { quat, vec3 } from 'mathcat';
 import { MotionQuality, MotionType, rigidBody, sphere } from 'crashcat';
 import { OBJECT_LAYER_MOVING, Physic } from '../physic/Physic';
 import imgSrc from '../assets/uv-checker-map-texture.svg?url'
+import { retroizeMaterial, retroizeTexture } from '../helpers/retroize';
 
 export async function createCharacter({ physic }: { physic: Physic }) {
   const characterRadius = 0.8;
@@ -39,7 +40,7 @@ export async function createCharacter({ physic }: { physic: Physic }) {
 
   const textureLoader = new TextureLoader()
   const texture = await textureLoader.loadAsync(imgSrc)
-
+  retroizeTexture(texture)
 
   const characterGeometry = new ConeGeometry(characterRadius, characterRadius * 4, 5, 1)
   characterGeometry.rotateZ(Math.PI / 2)
@@ -51,21 +52,23 @@ export async function createCharacter({ physic }: { physic: Physic }) {
     opacity: 0.5,
     transparent: true
   }));
-
   characterMesh.up.set(0, 1, 0)
   characterMesh.castShadow = true;
+  retroizeMaterial(characterMesh.material)
 
 
   const characterBodyMesh = new Mesh(new SphereGeometry(characterRadius, 8, 5), new MeshLambertMaterial({
     wireframe: true,
     color: 0xFF0077
   }));
+  retroizeMaterial(characterBodyMesh.material)
 
   const characterBaseGeometry = new BoxGeometry(characterRadius * 1.9, characterRadius * 1.9, characterRadius * 1.9)
   const characterBaseMesh = new Mesh(characterBaseGeometry, new MeshLambertMaterial({
     wireframe: true,
     color: 0x0077ff
   }));
+  retroizeMaterial(characterBaseMesh.material)
 
   return {
     characterBody,

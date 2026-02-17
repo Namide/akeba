@@ -12,7 +12,7 @@ export const OBJECT_LAYER_NOT_MOVING = addObjectLayer(worldSettings, BROADPHASE_
 enableCollision(worldSettings, OBJECT_LAYER_MOVING, OBJECT_LAYER_MOVING);
 enableCollision(worldSettings, OBJECT_LAYER_MOVING, OBJECT_LAYER_NOT_MOVING);
 
-// worldSettings.gravity[1] = -100
+worldSettings.gravity[1] = -100
 
 export class Physic {
 

@@ -17,13 +17,10 @@ export async function loadTrack() {
   gltfLoader.setDRACOLoader(dracoLoader);
 
   const gltf = await gltfLoader.loadAsync(modelsPath)
-  const trackMesh = await new Promise<Mesh>(resolve => {
-    gltf.scene.traverse((child) => {
-      if (child instanceof Mesh) {
-        resolve(child);
-      }
-    });
-  })
 
-  return trackMesh
+  const trackMeshes = gltf.scene.children.filter(mesh => (mesh as any).isMesh) as Mesh[]
+  const trackMesh = gltf.scene.children.find(mesh => mesh.name === 'track') as Mesh
+  trackMeshes.splice(trackMeshes.indexOf(trackMesh), 1)
+
+  return { trackMesh, trackMeshes }
 }

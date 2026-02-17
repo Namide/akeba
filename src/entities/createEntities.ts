@@ -1,6 +1,7 @@
 import {
   BoxGeometry,
   BufferGeometry,
+  Material,
   Mesh,
   MeshLambertMaterial,
   RepeatWrapping,
@@ -9,13 +10,11 @@ import {
 } from 'three';
 import { OBJECT_LAYER_MOVING, OBJECT_LAYER_NOT_MOVING, Physic } from '../physic/Physic';
 import { loadSuzanne } from '../render/loadSuzanne';
-import { loadTrack } from '../render/loadTrack';
 import imgSrc from '../assets/uv-checker-map-texture.svg?url'
-import { BufferGeometryUtils } from 'three/examples/jsm/Addons.js';
 import { box, MotionQuality, MotionType, rigidBody, sphere } from 'crashcat';
 import { createTriangleShape } from '../physic/createTriangleShape';
 import { quat, vec3 } from 'mathcat';
-import { createTrack } from './createTrack';
+import { retroizeMaterial, retroizeTexture } from '../helpers/retroize';
 
 const PLANE_GROUND = false
 
@@ -37,6 +36,7 @@ export async function createEntities({ physic }: { physic: Physic }) {
     friction: 0.7,
   })
   suzanneMesh.material = new MeshLambertMaterial({ color: 0xff88aa });
+  retroizeMaterial(suzanneMesh.material)
   suzanneMesh.castShadow = true;
   suzanneMesh.position.set(0, 1.1, 0);
   meshes.push(suzanneMesh)
@@ -62,8 +62,10 @@ export async function createEntities({ physic }: { physic: Physic }) {
     texture.wrapS = RepeatWrapping
     texture.wrapT = RepeatWrapping
     texture.repeat.set(GROUND_SIZE / 100, GROUND_SIZE / 100)
+    retroizeTexture(texture)
     // texture.updateMatrix()
     const groundMesh = new Mesh(new BoxGeometry(GROUND_SIZE, 1, GROUND_SIZE), new MeshLambertMaterial({ map: texture, color: 0xddff99 }));
+    retroizeMaterial(groundMesh.material)
     groundMesh.position.set(0, -0.5, 0);
     groundMesh.receiveShadow = true;
 
@@ -100,12 +102,16 @@ export async function createEntities({ physic }: { physic: Physic }) {
     ballBodies.push(ballBody)
 
     ballMeshes.push(new Mesh(new SphereGeometry(ballShape.radius, 32, 32), new MeshLambertMaterial({ color: 0x8888ff })));
+    retroizeMaterial(ballMeshes[i].material as Material)
     ballMeshes[i].position.set(-5 + i * 0.5, 5, 0);
     ballMeshes[i].castShadow = true;
   }
   meshes.push(...ballMeshes)
 
   const { bumpsMeshes, bumpsBodies } = createGround({ physic })
+  for (const mesh of bumpsMeshes) {
+    retroizeMaterial(mesh.material as Material)
+  }
   meshes.push(...bumpsMeshes)
 
 

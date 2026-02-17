@@ -11,7 +11,7 @@ import { Render } from "../render/Render";
 
 // const output = document.body.querySelector('.output')!
 
-const MAX_VELOCITY = 200
+const MAX_VELOCITY = 250
 const TURN_ABILITY = 2 // 0 = not, 1 = instant
 const BRAKE_TURN_ABILITY = 3.5
 const REACTIVITY = 0.5
@@ -89,6 +89,7 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
       const force = new Vector3()
         .subVectors(thrust, physicVelocity)
         .multiplyScalar(inputs.brake ? BRAKE_REACTIVITY : REACTIVITY)
+      // force.y = 0
 
       // Reduce jump
       // if (physicVelocity.y > 0) {
@@ -96,12 +97,27 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
 
       //   // Force to go ground
       // } else if (groundDistance > 0) {
-      const velocityTarget = -groundDistance * 8
-      force.y = velocityTarget - 4 * physicVelocity.y
+
+
+
+
+      // force.y = 0
+      // const velocityTarget = -groundDistance * 8
+      // force.y = velocityTarget - 4 * physicVelocity.y
+
+
+
+
 
       // }
 
-
+      if (physicVelocity.y > 0 && groundDistance > 1) {
+        rigidBody.setLinearVelocity(physic.world, characterBody, [
+          physicVelocity.x,
+          0,
+          physicVelocity.z,
+        ])
+      }
 
       // .sub(groundNormal.multiplyScalar(groundElasticity))
 
@@ -145,14 +161,14 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
       characterBodyMesh.quaternion.set(...characterBody.quaternion);
 
       log(
-        'physic velocity: ' + JSON.stringify(physicVelocity.toArray().map(n => n.toFixed(2)).join(', ')),
-        // 'velocity:' + physicVelocity.toFixed(2),
-        'ground normal:' + JSON.stringify(groundNormal.toArray().map(n => n.toFixed(2)).join(', ')),
-        'player direction:' + JSON.stringify(playerDirection.toArray().map(n => n.toFixed(2)).join(', ')),
-        'player velocity:' + JSON.stringify(thrust.toArray().map(n => n.toFixed(2)).join(', ')),
-        'force:' + JSON.stringify(force.toArray().map(n => n.toFixed(2)).join(', ')),
-        'lookAt:' + JSON.stringify(characterMesh.getWorldDirection(new Vector3()).toArray().map(n => n.toFixed(2)).join(', ')),
-        'lookAt:' + JSON.stringify(characterMesh.getWorldDirection(new Vector3()).toArray().map(n => n.toFixed(2)).join(', ')),
+        // 'physic velocity: ' + JSON.stringify(physicVelocity.toArray().map(n => n.toFixed(2)).join(', ')),
+        // // 'velocity:' + physicVelocity.toFixed(2),
+        // 'ground normal:' + JSON.stringify(groundNormal.toArray().map(n => n.toFixed(2)).join(', ')),
+        // 'player direction:' + JSON.stringify(playerDirection.toArray().map(n => n.toFixed(2)).join(', ')),
+        // 'player velocity:' + JSON.stringify(thrust.toArray().map(n => n.toFixed(2)).join(', ')),
+        // 'force:' + JSON.stringify(force.toArray().map(n => n.toFixed(2)).join(', ')),
+        // 'lookAt:' + JSON.stringify(characterMesh.getWorldDirection(new Vector3()).toArray().map(n => n.toFixed(2)).join(', ')),
+        // 'lookAt:' + JSON.stringify(characterMesh.getWorldDirection(new Vector3()).toArray().map(n => n.toFixed(2)).join(', ')),
         'groundDistance: ' + groundDistance
       )
     },

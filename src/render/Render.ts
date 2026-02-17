@@ -23,7 +23,7 @@ export class Render {
     this.renderer = new WebGLRenderer({
       canvas,
       powerPreference: 'high-performance',
-      antialias: true,
+      antialias: false,
       alpha: true,
       precision: 'highp',
     });
