@@ -1,7 +1,7 @@
 import { BufferGeometryUtils } from "three/examples/jsm/Addons.js"
 import { loadTrack } from "../render/loadTrack"
 import { OBJECT_LAYER_NOT_MOVING, Physic } from "../physic/Physic"
-import { BufferGeometry, Material, Mesh, MeshLambertMaterial, TextureLoader } from "three"
+import { BufferGeometry, Material, Mesh, MeshLambertMaterial, RepeatWrapping, TextureLoader } from "three"
 import { createTriangleShape } from "../physic/createTriangleShape"
 import { MotionType, rigidBody } from "crashcat"
 import { quat, vec3 } from "mathcat"
@@ -25,8 +25,23 @@ export async function createTrack({ physic }: { physic: Physic }) {
   retroizeMaterial(trackMesh.material)
   trackMesh.receiveShadow = true;
 
+  const mountain = trackMeshes.find(mesh => mesh.name === 'mountain')
+  if (mountain) {
+    const textureLoader = new TextureLoader()
+    const texture = await textureLoader.loadAsync(imgSrc)
+    // texture.matrix.makeScale(0.0001, 0.0001)
+    // texture.matrix.setUvTransform(0, 0, 0.001, 0.001, 0, 0, 0)
+    texture.wrapS = RepeatWrapping
+    texture.wrapT = RepeatWrapping
+    texture.repeat.set(20, 20)
 
-  for (const mesh of trackMeshes.filter(m => m.name.indexOf('physic'))) {
+    retroizeTexture(texture);
+    // texture.updateMatrix()
+
+    mountain.material = new MeshLambertMaterial({ map: texture, color: 0xddff99 })
+  }
+
+  for (const mesh of trackMeshes.filter(m => m.name.indexOf('physic') > -1)) {
     createPhysic({ physic, mesh })
   }
 
