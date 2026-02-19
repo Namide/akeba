@@ -5,7 +5,6 @@ import { log } from "../helpers/log";
 import { Physic } from "../physic/Physic";
 import { createInputs } from "../inputs/inputs";
 import { createGamepadInputs } from "../inputs/gamepadControls";
-import { rigidBody, sphere } from "crashcat";
 import { Render } from "../render/Render";
 import { LIGHT_SCALE_MAX, LIGHT_SCALE_MIN } from "../config";
 
@@ -36,7 +35,8 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
 
       tickGamepad()
 
-      updatePhysicDirection(physicVelocity, characterBody)
+      physicVelocity.copy(characterBody.velocity)
+      // updatePhysicDirection(physicVelocity, characterBody)
       // physicVelocity = physicVelocity.length()
 
       // Update ground normal
@@ -80,20 +80,22 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
         .multiplyScalar(inputs.brake ? BRAKE_REACTIVITY : REACTIVITY)
 
 
-      if (physicVelocity.y > 0 && groundDistance > 1) {
-        rigidBody.setLinearVelocity(physic.world, characterBody, [
-          physicVelocity.x,
-          0,
-          physicVelocity.z,
-        ])
-      }
-      rigidBody.addImpulse(physic.world, characterBody, force.toArray())
+      // if (physicVelocity.y > 0 && groundDistance > 1) {
+      //   rigidBody.setLinearVelocity(physic.world, characterBody, [
+      //     physicVelocity.x,
+      //     0,
+      //     physicVelocity.z,
+      //   ])
+      // }
+      // rigidBody.addImpulse(physic.world, characterBody, force.toArray())
+
+      characterBody.velocity.add(force)
 
       // Square
       const oldCameraLookAt = characterBaseMesh.getWorldDirection(new Vector3())
       const perpendicularDirectionCamera = new Vector3()
         .crossVectors(UP, playerDirection.normalize());
-      characterBaseMesh.position.lerp({ x: characterBody.position[0], y: characterBody.position[1], z: characterBody.position[2] }, deltaS * 36);
+      characterBaseMesh.position.lerp(characterBody.body.center, deltaS * 36);
       characterBaseMesh.lookAt(
         characterBaseMesh.position.clone().add(oldCameraLookAt)
           .lerp(
@@ -110,9 +112,9 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
       const perpendicularDirectionVehicle = new Vector3()
         .crossVectors(shipNormal, playerDirection);
       const oldShipLookAt = characterMesh.getWorldDirection(new Vector3())
-      characterMesh.position.x += (characterBody.position[0] - characterMesh.position.x) * 130 * deltaS
-      characterMesh.position.y += (characterBody.position[1] + FLY_HEIGHT - characterMesh.position.y) * 50 * deltaS
-      characterMesh.position.z += (characterBody.position[2] - characterMesh.position.z) * 130 * deltaS
+      characterMesh.position.x += (characterBody.body.center.x - characterMesh.position.x) * 130 * deltaS
+      characterMesh.position.y += (characterBody.body.center.y + FLY_HEIGHT - characterMesh.position.y) * 50 * deltaS
+      characterMesh.position.z += (characterBody.body.center.z - characterMesh.position.z) * 130 * deltaS
 
 
       characterMesh.up.lerp(shipNormal, 14 * deltaS)
@@ -125,8 +127,8 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
       );
 
       // Ball
-      characterBodyMesh.position.set(...characterBody.position);
-      characterBodyMesh.quaternion.set(...characterBody.quaternion);
+      characterBodyMesh.position.copy(characterBody.body.center);
+      // characterBodyMesh.quaternion.set(...characterBody.quaternion);
 
       log(
         // 'physic velocity: ' + JSON.stringify(physicVelocity.toArray().map(n => n.toFixed(2)).join(', ')),
@@ -151,19 +153,20 @@ raycaster.firstHitOnly = true;
 const DOWN = new Vector3(0, -1, 0);
 function updateGroundNormal(groundNormal: Vector3, characterBody: Parameters<typeof createCharacterControls>[0]['characterBody'], trackMesh: Mesh) {
 
-  const temp = new Vector3(...characterBody.position)
+  const temp = characterBody.body.center.clone()
   let distance = 20
 
   raycaster.set(temp, DOWN);
-  const hits = raycaster.intersectObject(trackMesh, false);
+  // const hits = raycaster.intersectObject(trackMesh, false);
 
-  if (hits.length > 0) {
-    const normal = hits[0].face!.normal.clone()
-      .transformDirection(trackMesh.matrixWorld); // local → world space
+  if (characterBody.collision) {
+    // const normal = 
+    // hits[0].face!.normal.clone()
+    //   .transformDirection(trackMesh.matrixWorld); // local → world space
 
-    groundNormal.lerp(normal, 0.15);
+    groundNormal.lerp(characterBody.collision.normal, 0.15);
     groundNormal.normalize();
-    distance = Math.max(0, hits[0].distance - (characterBody.shape as sphere.SphereShape).radius)
+    distance = 0 // Math.max(0, hits[0].distance - (characterBody.shape as sphere.SphereShape).radius)
   } else {
     // dans les airs
     groundNormal.lerp(UP, 0.05);
@@ -207,7 +210,7 @@ function updateGroundNormal(groundNormal: Vector3, characterBody: Parameters<typ
   // return meshes
 }
 
-function updatePhysicDirection(physicVelocity: Vector3, characterBody: Parameters<typeof createCharacterControls>[0]['characterBody']) {
-  const [x, y, z] = rigidBody.getVelocityAtPoint([0, 0, 0], characterBody, characterBody.position) // characterBody.linearVelocity
-  physicVelocity.set(x, y, z)
-}
+// function updatePhysicDirection(physicVelocity: Vector3, characterBody: Parameters<typeof createCharacterControls>[0]['characterBody']) {
+//   const [x, y, z] = rigidBody.getVelocityAtPoint([0, 0, 0], characterBody, characterBody.position) // characterBody.linearVelocity
+//   physicVelocity.set(x, y, z)
+// }

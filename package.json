@@ -19,6 +19,7 @@
   "dependencies": {
     "crashcat": "^0.0.1",
     "mathcat": "^0.0.10",
-    "three": "^0.182.0"
+    "three": "^0.182.0",
+    "three-mesh-bvh": "^0.9.8"
   }
 }
