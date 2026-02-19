@@ -9,7 +9,6 @@ import {
   TextureLoader,
 } from 'three';
 import { OBJECT_LAYER_MOVING, OBJECT_LAYER_NOT_MOVING, Physic } from '../physic/Physic';
-import { loadSuzanne } from '../render/loadSuzanne';
 import imgSrc from '../assets/uv-checker-map-texture.svg?url'
 import { box, MotionQuality, MotionType, rigidBody, sphere } from 'crashcat';
 import { createTriangleShape } from '../physic/createTriangleShape';
@@ -21,25 +20,7 @@ const PLANE_GROUND = false
 
 // we will call this function once the gltf is loaded, since we load suzanne (the monkey) from the gltf
 export async function createEntities({ physic }: { physic: Physic }) {
-  const suzanneMesh = await loadSuzanne()
   const meshes: Mesh[] = []
-
-  const suzanneGeo = (suzanneMesh.geometry as BufferGeometry);
-  const suzanneShape = createTriangleShape(suzanneGeo)
-
-  const suzanneBody = rigidBody.create(physic.world, {
-    shape: suzanneShape,
-    objectLayer: OBJECT_LAYER_NOT_MOVING,
-    motionType: MotionType.STATIC,
-    position: vec3.fromValues(0, 1.1, 0),
-    restitution: 0.2,
-    friction: 0.7,
-  })
-  suzanneMesh.material = new MeshLambertMaterial({ color: 0xff88aa });
-  retroizeMaterial(suzanneMesh.material)
-  suzanneMesh.castShadow = true;
-  suzanneMesh.position.set(0, 1.1, 0);
-  meshes.push(suzanneMesh)
 
   if (PLANE_GROUND) {
     // create the ground
@@ -76,69 +57,10 @@ export async function createEntities({ physic }: { physic: Physic }) {
   }
 
 
-
-  // create the balls
-  const ballMeshes: Mesh[] = [];
-  const ballBodies: rigidBody.RigidBody[] = [];
-  const ballShape = sphere.create({
-    radius: 0.11,
-  });
-  for (let i = 0; i < 50; i++) {
-    const ballBody = rigidBody.create(physic.world, {
-      shape: ballShape,
-
-      objectLayer: OBJECT_LAYER_MOVING,
-      motionType: MotionType.DYNAMIC,
-      motionQuality: MotionQuality.DISCRETE,
-
-      position: vec3.fromValues(-5 + i * 0.2, 3 + Math.random() * 5, .5 - Math.random()),
-      quaternion: quat.create(),
-
-      restitution: 0.6,
-      friction: 0.8,
-      mass: 0.45
-    });
-    rigidBody.setLinearVelocity(physic.world, ballBody, [1 - Math.random(), 3 * Math.random(), 0]);
-    ballBodies.push(ballBody)
-
-    ballMeshes.push(new Mesh(new SphereGeometry(ballShape.radius, 32, 32), new MeshLambertMaterial({ color: 0x8888ff })));
-    retroizeMaterial(ballMeshes[i].material as Material)
-    ballMeshes[i].position.set(-5 + i * 0.5, 5, 0);
-    ballMeshes[i].castShadow = true;
-  }
-  meshes.push(...ballMeshes)
-
-  const { bumpsMeshes, bumpsBodies } = createGround({ physic })
-  for (const mesh of bumpsMeshes) {
-    retroizeMaterial(mesh.material as Material)
-  }
-  meshes.push(...bumpsMeshes)
-
-
   return {
     meshes,
     tick: () => {
-      suzanneMesh.position.set(...suzanneBody.position);
-      suzanneMesh.quaternion.set(...suzanneBody.quaternion);
-
-      // groundMesh.position.set(groundBody.position.x, groundBody.position.y, groundBody.position.z);
-      // groundMesh.quaternion.set(groundBody.orientation.x, groundBody.orientation.y, groundBody.orientation.z, groundBody.orientation.w);
-
-
-      // trackMesh.position.set(trackBody.position.x, trackBody.position.y, trackBody.position.z);
-      // trackMesh.quaternion.set(trackBody.orientation.x, trackBody.orientation.y, trackBody.orientation.z, trackBody.orientation.w);
-
-      for (let i = 0; i < ballBodies.length; i++) {
-        const ballBody = ballBodies[i];
-        ballMeshes[i].position.set(...ballBody.position);
-        ballMeshes[i].quaternion.set(...ballBody.quaternion);
-      }
-
-      for (let i = 0; i < bumpsBodies.length; i++) {
-        const bumpsBody = bumpsBodies[i];
-        bumpsMeshes[i].position.set(...bumpsBody.position);
-        bumpsMeshes[i].quaternion.set(...bumpsBody.quaternion);
-      }
+      // for dynamic physic elements
     }
   }
 }
