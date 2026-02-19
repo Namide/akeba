@@ -8,6 +8,7 @@ import { createGamepadInputs } from "../inputs/gamepadControls";
 import { castRay, CastRayStatus, createClosestCastRayCollector, createDefaultCastRaySettings, filter, RigidBody, rigidBody, sphere } from "crashcat";
 import { vec3 } from "mathcat";
 import { Render } from "../render/Render";
+import { LIGHT_SCALE_MAX, LIGHT_SCALE_MIN } from "../config";
 
 // const output = document.body.querySelector('.output')!
 
@@ -16,20 +17,21 @@ const TURN_ABILITY = 2 // 0 = not, 1 = instant
 const BRAKE_TURN_ABILITY = 3.5
 const REACTIVITY = 0.5
 const BRAKE_REACTIVITY = 0.002
-const FLY_HEIGHT = 0
+const FLY_HEIGHT = 0.5
 const RESISTANCE = 0.98
 const VELOCITY_DECELERATION = 0.8
 
 const UP = new Vector3(0, 1, 0)
 const VECTOR_3 = new Vector3()
 
-export function createCharacterControls({ characterBody, characterBodyMesh, characterMesh, characterBaseMesh, physic, render, trackMesh }: Awaited<ReturnType<typeof createCharacter>> & { physic: Physic, render: Render, trackMesh: Mesh }) {
+export function createCharacterControls({ characterBody, characterBodyMesh, characterMesh, characterBaseMesh, lightLeftSprite, lightRightSprite, physic, render, trackMesh }: Awaited<ReturnType<typeof createCharacter>> & { physic: Physic, render: Render, trackMesh: Mesh }) {
   const inputs = createInputs()
   const { dispose: disposeKeyboard } = createKeyboardInputs(inputs)
   const { tick: tickGamepad } = createGamepadInputs(inputs)
 
   const playerDirection = new Vector3(-1, 0, 0)
   const groundNormal = new Vector3()
+  const shipNormal = new Vector3()
   const physicVelocity = new Vector3(-1, 0, 0)
   const thrust = playerDirection.clone()
 
@@ -46,70 +48,43 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
       // Update ground normal
       const groundDistance = updateGroundNormal(groundNormal, physic, characterBody, trackMesh)
 
-      // const perpendicularRotation = perpendicular.clone().multiplyScalar(rotation * physicVelocity)
-
-      // thrust.copy(playerDirection)
-
       const turn = deltaS * (inputs.brake ? BRAKE_TURN_ABILITY : TURN_ABILITY)
 
       if (inputs.left) {
         const perpendicular = new Vector3()
           .crossVectors({ x: 0, y: 1, z: 0 }, playerDirection);
-
-        // thrust.lerp(perpendicular, LEVER_ANGLE)
         playerDirection.lerp(perpendicular, turn)
-
-        // ---
-        // force.add(perpendicularRotation);
       } else if (inputs.right) {
         const perpendicular = new Vector3()
           .crossVectors({ x: 0, y: -1, z: 0 }, playerDirection);
-
-        // thrust.lerp(perpendicular, LEVER_ANGLE)
         playerDirection.lerp(perpendicular, turn)
-        // ---
-        // force.sub(perpendicularRotation);
       }
 
       let nextSpeed = physicVelocity.length()
       if (inputs.forward) {
-        // thrust.multiplyScalar(MAX_VELOCITY)
         nextSpeed = MAX_VELOCITY
-      } else if (inputs.backward) {
-        // thrust.set(0, 0, 0)
-        nextSpeed = 0
-        // force.sub(playerDirection.normalize().multiplyScalar(MAX_VELOCITY / 2))
+
+        const scale = lightRightSprite.scale.x + (LIGHT_SCALE_MAX - lightRightSprite.scale.x) * deltaS * 2
+        lightRightSprite.scale.set(scale, scale, scale)
+        lightLeftSprite.scale.set(scale, scale, scale)
+      } else {
+        const scale = lightRightSprite.scale.x + (LIGHT_SCALE_MIN - lightRightSprite.scale.x) * deltaS * 10
+        lightRightSprite.scale.set(scale, scale, scale)
+        lightLeftSprite.scale.set(scale, scale, scale)
+
+        if (inputs.backward) {
+          nextSpeed = 0
+        }
       }
+
+
 
       thrust.copy(playerDirection).multiplyScalar(nextSpeed)
 
-      // if () {
-
-      // }
       const force = new Vector3()
         .subVectors(thrust, physicVelocity)
         .multiplyScalar(inputs.brake ? BRAKE_REACTIVITY : REACTIVITY)
-      // force.y = 0
 
-      // Reduce jump
-      // if (physicVelocity.y > 0) {
-      //   force.y = -physicVelocity.y * 4
-
-      //   // Force to go ground
-      // } else if (groundDistance > 0) {
-
-
-
-
-      // force.y = 0
-      // const velocityTarget = -groundDistance * 8
-      // force.y = velocityTarget - 4 * physicVelocity.y
-
-
-
-
-
-      // }
 
       if (physicVelocity.y > 0 && groundDistance > 1) {
         rigidBody.setLinearVelocity(physic.world, characterBody, [
@@ -118,11 +93,6 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
           physicVelocity.z,
         ])
       }
-
-      // .sub(groundNormal.multiplyScalar(groundElasticity))
-
-      // rigidBody.setLinearVelocity(physic.world, characterBody,
-      //   physicVelocity.clone().multiply({ x: RESISTANCE, y: 1, z: RESISTANCE }).toArray())
       rigidBody.addImpulse(physic.world, characterBody, force.toArray())
 
       // Square
@@ -138,21 +108,25 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
           )
       );
 
+      const turnDirection = playerDirection.clone().normalize().sub(physicVelocity.clone().normalize())
+
+      const shipNormal = groundNormal.clone().add(turnDirection)
+
       // Ship
       const perpendicularDirectionVehicle = new Vector3()
-        .crossVectors(groundNormal, playerDirection);
+        .crossVectors(shipNormal, playerDirection);
       const oldShipLookAt = characterMesh.getWorldDirection(new Vector3())
-      // characterMesh.position.lerp(characterBody.position, deltaS * 36)
       characterMesh.position.x += (characterBody.position[0] - characterMesh.position.x) * 130 * deltaS
       characterMesh.position.y += (characterBody.position[1] + FLY_HEIGHT - characterMesh.position.y) * 50 * deltaS
       characterMesh.position.z += (characterBody.position[2] - characterMesh.position.z) * 130 * deltaS
-      // characterMesh.position.lerp(characterBody.position, deltaS * 36)
-      // characterBody.position.x, characterBody.position.y, characterBody.position.z
-      characterMesh.up.lerp(groundNormal, 14 * deltaS)
+
+
+      characterMesh.up.lerp(shipNormal, 14 * deltaS)
       characterMesh.lookAt(
         characterMesh.position.clone().add(oldShipLookAt)
           .lerp(
-            characterMesh.position.clone().add(perpendicularDirectionVehicle), 14 * deltaS
+            characterMesh.position.clone().add(perpendicularDirectionVehicle)
+            , 14 * deltaS
           )
       );
 
@@ -169,7 +143,7 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
         // 'force:' + JSON.stringify(force.toArray().map(n => n.toFixed(2)).join(', ')),
         // 'lookAt:' + JSON.stringify(characterMesh.getWorldDirection(new Vector3()).toArray().map(n => n.toFixed(2)).join(', ')),
         // 'lookAt:' + JSON.stringify(characterMesh.getWorldDirection(new Vector3()).toArray().map(n => n.toFixed(2)).join(', ')),
-        'groundDistance: ' + groundDistance
+        'turnDirection: ' + JSON.stringify(turnDirection.toArray().map(n => n.toFixed(2)).join(', '))
       )
     },
     dispose: () => {

@@ -19,10 +19,10 @@ const physic = new Physic()
 const entities = await createEntities({ physic })
 render.scene.add(...entities.meshes);
 
-const { trackMesh, trackMeshes } = await createTrack({ physic })
-render.scene.add(trackMesh, ...trackMeshes);
+const { trackMesh, trackMeshes, shipMesh, trackLights } = await createTrack({ physic })
+render.scene.add(trackMesh, ...trackMeshes, ...trackLights);
 
-const character3D = await createCharacter({ physic })
+const character3D = await createCharacter({ physic, shipMesh })
 render.scene.add(character3D.characterMesh);
 render.scene.add(character3D.characterBodyMesh);
 render.scene.add(character3D.characterBaseMesh);

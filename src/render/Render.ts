@@ -51,8 +51,8 @@ export class Render {
     this.directionalLight.shadow.camera.right = 1000;
     this.directionalLight.shadow.camera.top = 500;
     this.directionalLight.shadow.camera.bottom = -300;
-    this.directionalLight.shadow.mapSize.width = 1024;
-    this.directionalLight.shadow.mapSize.height = 1024;
+    this.directionalLight.shadow.mapSize.width = 2048 * 2;
+    this.directionalLight.shadow.mapSize.height = 2048 * 2;
     this.directionalLight.position.set(500, 500, 500);
     this.scene.add(this.directionalLight);
 

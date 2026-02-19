@@ -12,7 +12,6 @@ export function retroizeMaterial(material: Material) {
   const PIXEL_SNAPING = RESOLUTION_HEIGHT / 2
 
   material.onBeforeCompile = (shader) => {
-    console.log(shader.vertexShader)
     shader.vertexShader = shader.vertexShader.replace(
       '#include <project_vertex>',
       `

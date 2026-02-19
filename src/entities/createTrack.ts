@@ -11,7 +11,7 @@ import { retroizeMaterial, retroizeTexture } from "../render/retroize"
 
 export async function createTrack({ physic }: { physic: Physic }) {
   // Track
-  const { trackMesh, trackMeshes } = await loadTrack()
+  const { trackMesh, trackMeshes, shipMesh, trackLights } = await loadTrack()
 
   const trackBody = createPhysic({ physic, mesh: trackMesh })
   const textureLoader = new TextureLoader()
@@ -46,6 +46,10 @@ export async function createTrack({ physic }: { physic: Physic }) {
     createPhysic({ physic, mesh })
   }
 
+  for (const light of trackLights) {
+    light.intensity = 200
+  }
+
   for (const mesh of trackMeshes) {
     retroizeMaterial(mesh.material as Material)
     mesh.receiveShadow = true;
@@ -55,7 +59,9 @@ export async function createTrack({ physic }: { physic: Physic }) {
   return {
     trackBody,
     trackMesh,
-    trackMeshes
+    trackMeshes,
+    trackLights,
+    shipMesh
   }
 }
 
@@ -64,13 +70,9 @@ function createPhysic({ physic, mesh }: { physic: Physic, mesh: Mesh }) {
 
   const SIMPLIFY_MESH = true
   if (SIMPLIFY_MESH) {
-    console.log(trackGeometry.getAttribute("position").array.length)
-
     trackGeometry.deleteAttribute('uv')
     trackGeometry.deleteAttribute('normal')
     trackGeometry = BufferGeometryUtils.mergeVertices(trackGeometry, 1);
-
-    console.log(trackGeometry.getAttribute("position").array.length)
   }
 
   // cos(45°) ≈ 0.707 → plus permissif

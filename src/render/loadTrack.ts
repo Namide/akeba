@@ -1,4 +1,5 @@
 import {
+  Light,
   LoadingManager,
   Mesh,
 } from 'three';
@@ -19,8 +20,14 @@ export async function loadTrack() {
   const gltf = await gltfLoader.loadAsync(modelsPath)
 
   const trackMeshes = gltf.scene.children.filter(mesh => (mesh as any).isMesh) as Mesh[]
-  const trackMesh = gltf.scene.children.find(mesh => mesh.name === 'track') as Mesh
+
+  const trackLights = gltf.scene.children.filter(mesh => (mesh as any).isLight) as Light[]
+
+  const trackMesh = trackMeshes.find(mesh => mesh.name === 'track') as Mesh
   trackMeshes.splice(trackMeshes.indexOf(trackMesh), 1)
 
-  return { trackMesh, trackMeshes }
+  const shipMesh = trackMeshes.find(mesh => mesh.name === 'ship-01') as Mesh
+  trackMeshes.splice(trackMeshes.indexOf(shipMesh), 1)
+
+  return { trackMesh, trackMeshes, shipMesh, trackLights }
 }
