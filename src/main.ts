@@ -1,3 +1,17 @@
+import { BatchedMesh, BufferGeometry, Mesh } from 'three';
+import {
+  computeBoundsTree, disposeBoundsTree,
+  computeBatchedBoundsTree, disposeBatchedBoundsTree, acceleratedRaycast,
+} from 'three-mesh-bvh';
+
+BufferGeometry.prototype.computeBoundsTree = computeBoundsTree;
+BufferGeometry.prototype.disposeBoundsTree = disposeBoundsTree;
+Mesh.prototype.raycast = acceleratedRaycast;
+
+BatchedMesh.prototype.computeBoundsTree = computeBatchedBoundsTree;
+BatchedMesh.prototype.disposeBoundsTree = disposeBatchedBoundsTree;
+BatchedMesh.prototype.raycast = acceleratedRaycast;
+
 import { Render } from "./render/Render";
 import { Physic } from "./physic/Physic";
 import { attachTick } from "./helpers/attachTick";
@@ -9,13 +23,18 @@ import { createCharacterControls } from "./gameplay/createCharacterControls";
 import { updateWorld } from "crashcat";
 import { createTrack } from "./entities/createTrack";
 
+
+
 const render = new Render(document.body.querySelector('canvas')!)
 render.resize()
 
 const physic = new Physic()
 
-const entities = await createEntities({ physic })
-render.scene.add(...entities.meshes);
+const PLANE_GROUND = false
+if (PLANE_GROUND) {
+  const entities = await createEntities({ physic })
+  render.scene.add(...entities.meshes);
+}
 
 const { trackMesh, trackMeshes, shipMesh, trackLights } = await createTrack({ physic })
 render.scene.add(trackMesh, ...trackMeshes, ...trackLights);
@@ -33,15 +52,11 @@ const cameraPosition = createCameraPosition(render, character3D.characterBaseMes
 // render.scene.add(skybox)
 
 attachTick(({ deltaS }) => {
-  const steps = 1
 
-  for (let i = 0; i < steps; i++) {
-    updateWorld(physic.world, undefined, deltaS / steps);
-  }
+  updateWorld(physic.world, undefined, deltaS);
 
   characterTick.tick({ deltaS })
   cameraPosition.tick()
-  entities.tick()
 
   render.render()
 })

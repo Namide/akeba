@@ -6,6 +6,7 @@ import { createTriangleShape } from "../physic/createTriangleShape"
 import { MotionType, rigidBody } from "crashcat"
 import { quat, vec3 } from "mathcat"
 import { retroizeMaterial } from "../render/retroize"
+import { computeBoundsTree, ComputeBVHOptions } from "three-mesh-bvh"
 
 export async function createTrack({ physic }: { physic: Physic }) {
   // Track
@@ -75,6 +76,9 @@ export async function createTrack({ physic }: { physic: Physic }) {
 
 function createPhysic({ physic, mesh }: { physic: Physic, mesh: Mesh }) {
   let trackGeometry = mesh.geometry.clone() as BufferGeometry
+
+  // Perf: x10 https://www.npmjs.com/package/three-mesh-bvh
+  mesh.geometry.computeBoundsTree()
 
   const SIMPLIFY_MESH = true
   if (SIMPLIFY_MESH) {

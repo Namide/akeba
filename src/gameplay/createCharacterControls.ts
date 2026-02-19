@@ -147,6 +147,7 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
 }
 
 const raycaster = new Raycaster();
+raycaster.firstHitOnly = true;
 const DOWN = new Vector3(0, -1, 0);
 function updateGroundNormal(groundNormal: Vector3, characterBody: Parameters<typeof createCharacterControls>[0]['characterBody'], trackMesh: Mesh) {
 
