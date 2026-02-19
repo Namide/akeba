@@ -1,13 +1,11 @@
 import { BufferGeometryUtils } from "three/examples/jsm/Addons.js"
 import { loadTrack } from "../render/loadTrack"
 import { OBJECT_LAYER_NOT_MOVING, Physic } from "../physic/Physic"
-import { AdditiveBlending, BufferGeometry, Material, Mesh, MeshBasicMaterial, MeshLambertMaterial, RepeatWrapping, Texture, TextureLoader } from "three"
+import { AdditiveBlending, BufferGeometry, Mesh, MeshBasicMaterial, MeshLambertMaterial } from "three"
 import { createTriangleShape } from "../physic/createTriangleShape"
 import { MotionType, rigidBody } from "crashcat"
 import { quat, vec3 } from "mathcat"
-
-import imgSrc from '../assets/uv-checker-map-texture.svg?url'
-import { retroizeMaterial, retroizeTexture } from "../render/retroize"
+import { retroizeMaterial } from "../render/retroize"
 
 export async function createTrack({ physic }: { physic: Physic }) {
   // Track

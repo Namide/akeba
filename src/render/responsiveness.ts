@@ -4,7 +4,7 @@ import { RESOLUTION_HEIGHT } from '../config';
 let previousWidth = 0;
 let previousHeight = 0;
 
-export function resizeRendererToDisplaySize(renderer: WebGLRenderer, pixelRatio: number) {
+export function resizeRendererToDisplaySize(renderer: WebGLRenderer) {
   const canvas = renderer.domElement;
   const container = canvas.parentElement!;
   const width = container.clientWidth;

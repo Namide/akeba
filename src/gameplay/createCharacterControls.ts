@@ -1,16 +1,14 @@
-import { ArrowHelper, BoxGeometry, Mesh, MeshStandardMaterial, Quaternion, Raycaster, Vector3 } from "three";
+import { Mesh, Raycaster, Vector3 } from "three";
 import { createKeyboardInputs } from "../inputs/keyboardControls";
 import { createCharacter } from "../entities/createCharacter";
 import { log } from "../helpers/log";
-import { OBJECT_LAYER_NOT_MOVING, Physic, worldSettings } from "../physic/Physic";
+import { Physic } from "../physic/Physic";
 import { createInputs } from "../inputs/inputs";
 import { createGamepadInputs } from "../inputs/gamepadControls";
-import { castRay, CastRayStatus, createClosestCastRayCollector, createDefaultCastRaySettings, filter, RigidBody, rigidBody, sphere } from "crashcat";
-import { vec3 } from "mathcat";
+import { rigidBody, sphere } from "crashcat";
 import { Render } from "../render/Render";
 import { LIGHT_SCALE_MAX, LIGHT_SCALE_MIN } from "../config";
 
-// const output = document.body.querySelector('.output')!
 
 const MAX_VELOCITY = 250
 const TURN_ABILITY = 2 // 0 = not, 1 = instant
@@ -18,20 +16,16 @@ const BRAKE_TURN_ABILITY = 3.5
 const REACTIVITY = 0.5
 const BRAKE_REACTIVITY = 0.002
 const FLY_HEIGHT = 0.5
-const RESISTANCE = 0.98
-const VELOCITY_DECELERATION = 0.8
 
 const UP = new Vector3(0, 1, 0)
-const VECTOR_3 = new Vector3()
 
-export function createCharacterControls({ characterBody, characterBodyMesh, characterMesh, characterBaseMesh, lightLeftSprite, lightRightSprite, physic, render, trackMesh }: Awaited<ReturnType<typeof createCharacter>> & { physic: Physic, render: Render, trackMesh: Mesh }) {
+export function createCharacterControls({ characterBody, characterBodyMesh, characterMesh, characterBaseMesh, lightLeftSprite, lightRightSprite, physic, trackMesh }: Awaited<ReturnType<typeof createCharacter>> & { physic: Physic, render: Render, trackMesh: Mesh }) {
   const inputs = createInputs()
   const { dispose: disposeKeyboard } = createKeyboardInputs(inputs)
   const { tick: tickGamepad } = createGamepadInputs(inputs)
 
   const playerDirection = new Vector3(-1, 0, 0)
   const groundNormal = new Vector3()
-  const shipNormal = new Vector3()
   const physicVelocity = new Vector3(-1, 0, 0)
   const thrust = playerDirection.clone()
 
@@ -46,7 +40,7 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
       // physicVelocity = physicVelocity.length()
 
       // Update ground normal
-      const groundDistance = updateGroundNormal(groundNormal, physic, characterBody, trackMesh)
+      const groundDistance = updateGroundNormal(groundNormal, characterBody, trackMesh)
 
       const turn = deltaS * (inputs.brake ? BRAKE_TURN_ABILITY : TURN_ABILITY)
 
@@ -154,7 +148,7 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
 
 const raycaster = new Raycaster();
 const DOWN = new Vector3(0, -1, 0);
-function updateGroundNormal(groundNormal: Vector3, physic: Physic, characterBody: Parameters<typeof createCharacterControls>[0]['characterBody'], trackMesh: Mesh) {
+function updateGroundNormal(groundNormal: Vector3, characterBody: Parameters<typeof createCharacterControls>[0]['characterBody'], trackMesh: Mesh) {
 
   const temp = new Vector3(...characterBody.position)
   let distance = 20

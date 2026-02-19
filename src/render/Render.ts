@@ -66,7 +66,7 @@ export class Render {
   }
 
   resize() {
-    if (resizeRendererToDisplaySize(this.renderer, this.pixelRatio)) {
+    if (resizeRendererToDisplaySize(this.renderer)) {
       const canvas = this.renderer.domElement;
       this.camera.aspect = canvas.clientWidth / canvas.clientHeight;
       this.camera.updateProjectionMatrix();

@@ -8,8 +8,6 @@ import { createCameraPosition } from "./render/cameraPosition";
 import { createCharacterControls } from "./gameplay/createCharacterControls";
 import { updateWorld } from "crashcat";
 import { createTrack } from "./entities/createTrack";
-import { createSkybox } from "./render/createSkybox";
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 const render = new Render(document.body.querySelector('canvas')!)
 render.resize()

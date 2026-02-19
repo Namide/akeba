@@ -1,4 +1,4 @@
-import { Mesh, PerspectiveCamera, Vector3 } from "three";
+import { Mesh, Vector3 } from "three";
 import { DEBUG } from "../config";
 import { OrbitControls } from "three/examples/jsm/Addons.js";
 import { Render } from "./Render";
