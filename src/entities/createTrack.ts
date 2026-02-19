@@ -14,14 +14,14 @@ export async function createTrack({ physic }: { physic: Physic }) {
   const { trackMesh, trackMeshes, shipMesh, trackLights } = await loadTrack()
 
   const trackBody = createPhysic({ physic, mesh: trackMesh })
-  const textureLoader = new TextureLoader()
-  const texture = await textureLoader.loadAsync(imgSrc)
-  retroizeTexture(texture)
-  trackMesh.material = new MeshLambertMaterial({
-    map: texture,
-    color: 0xddff99,
-    // wireframe: true
-  });
+  // const textureLoader = new TextureLoader()
+  // const texture = await textureLoader.loadAsync(imgSrc)
+  // retroizeTexture(texture)
+  // trackMesh.material = new MeshLambertMaterial({
+  //   map: texture,
+  //   color: 0xddff99,
+  //   // wireframe: true
+  // });
   retroizeMaterial(trackMesh.material as MeshLambertMaterial)
   trackMesh.receiveShadow = true;
   trackMesh.castShadow = true;

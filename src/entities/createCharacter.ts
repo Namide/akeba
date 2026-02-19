@@ -55,7 +55,7 @@ export async function createCharacter({ physic, shipMesh }: { physic: Physic, sh
     color: 0x00FFFF,
     // wireframe: true
   });
-  retroizeMaterial(shipMesh.material)
+  retroizeMaterial(shipMesh.material as MeshLambertMaterial)
   shipMesh.up.set(0, 1, 0)
   shipMesh.receiveShadow = true;
   shipMesh.castShadow = true;
@@ -78,7 +78,7 @@ export async function createCharacter({ physic, shipMesh }: { physic: Physic, sh
   lightRightSprite.position.set(1.3, 0, -0.5)
   lightLeftSprite.scale.set(LIGHT_SCALE_MIN, LIGHT_SCALE_MIN, LIGHT_SCALE_MIN)
   lightRightSprite.scale.set(LIGHT_SCALE_MIN, LIGHT_SCALE_MIN, LIGHT_SCALE_MIN)
-  retroizeMaterial(material as MeshLambertMaterial)
+  retroizeMaterial(material as SpriteMaterial)
   shipMesh.add(lightLeftSprite, lightRightSprite)
 
   // const light = new SpotLight(0xFF0000, 1, 100, Math.PI / 2)

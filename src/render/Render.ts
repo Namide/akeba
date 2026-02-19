@@ -44,7 +44,7 @@ export class Render {
     this.directionalLight = new DirectionalLight(0xffeeaa, 1.3);
     this.directionalLight.castShadow = true;
     this.directionalLight.shadow.radius = 1;
-    this.directionalLight.shadow.bias = 0.00001;
+    this.directionalLight.shadow.bias = -0.0005;
     this.directionalLight.shadow.camera.near = 1;
     this.directionalLight.shadow.camera.far = 1500;
     this.directionalLight.shadow.camera.left = -500;
