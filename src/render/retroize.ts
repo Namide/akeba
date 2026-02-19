@@ -1,4 +1,5 @@
 import { Material, NearestFilter, Texture } from "three";
+import { RESOLUTION_HEIGHT } from "../config";
 
 export function retroizeTexture(texture: Texture) {
   texture.anisotropy = 0
@@ -7,6 +8,9 @@ export function retroizeTexture(texture: Texture) {
 }
 
 export function retroizeMaterial(material: Material) {
+
+  const PIXEL_SNAPING = RESOLUTION_HEIGHT / 2
+
   material.onBeforeCompile = (shader) => {
     console.log(shader.vertexShader)
     shader.vertexShader = shader.vertexShader.replace(
@@ -21,7 +25,7 @@ vec4 mvPosition = vec4( transformed, 1.0 );
 #endif
 mvPosition = modelViewMatrix * mvPosition;
 
-vec2 namideResolution = vec2(160.0, 160.0);
+vec2 namideResolution = vec2(${PIXEL_SNAPING.toFixed(1)}, ${PIXEL_SNAPING.toFixed(1)});
 vec4 namidePos = projectionMatrix * mvPosition;
   
 namidePos.xyz /= namidePos.w;

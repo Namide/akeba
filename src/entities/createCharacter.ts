@@ -10,7 +10,7 @@ import { quat, vec3 } from 'mathcat';
 import { MotionQuality, MotionType, rigidBody, sphere } from 'crashcat';
 import { OBJECT_LAYER_MOVING, Physic } from '../physic/Physic';
 import imgSrc from '../assets/uv-checker-map-texture.svg?url'
-import { retroizeMaterial, retroizeTexture } from '../helpers/retroize';
+import { retroizeMaterial, retroizeTexture } from '../render/retroize';
 
 export async function createCharacter({ physic }: { physic: Physic }) {
   const characterRadius = 0.8;

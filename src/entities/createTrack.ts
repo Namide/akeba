@@ -7,7 +7,7 @@ import { MotionType, rigidBody } from "crashcat"
 import { quat, vec3 } from "mathcat"
 
 import imgSrc from '../assets/uv-checker-map-texture.svg?url'
-import { retroizeMaterial, retroizeTexture } from "../helpers/retroize"
+import { retroizeMaterial, retroizeTexture } from "../render/retroize"
 
 export async function createTrack({ physic }: { physic: Physic }) {
   // Track
@@ -24,6 +24,7 @@ export async function createTrack({ physic }: { physic: Physic }) {
   });
   retroizeMaterial(trackMesh.material)
   trackMesh.receiveShadow = true;
+  trackMesh.castShadow = true;
 
   const mountain = trackMeshes.find(mesh => mesh.name === 'mountain')
   if (mountain) {
@@ -47,6 +48,8 @@ export async function createTrack({ physic }: { physic: Physic }) {
 
   for (const mesh of trackMeshes) {
     retroizeMaterial(mesh.material as Material)
+    mesh.receiveShadow = true;
+    mesh.castShadow = true;
   }
 
   return {

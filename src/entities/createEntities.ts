@@ -14,7 +14,7 @@ import imgSrc from '../assets/uv-checker-map-texture.svg?url'
 import { box, MotionQuality, MotionType, rigidBody, sphere } from 'crashcat';
 import { createTriangleShape } from '../physic/createTriangleShape';
 import { quat, vec3 } from 'mathcat';
-import { retroizeMaterial, retroizeTexture } from '../helpers/retroize';
+import { retroizeMaterial, retroizeTexture } from '../render/retroize';
 
 const PLANE_GROUND = false
 
