@@ -1,4 +1,4 @@
-import { Material, NearestFilter, Texture } from "three";
+import { MeshLambertMaterial, NearestFilter, SpriteMaterial, Texture } from "three";
 import { RESOLUTION_HEIGHT } from "../config";
 
 export function retroizeTexture(texture: Texture) {
@@ -7,9 +7,13 @@ export function retroizeTexture(texture: Texture) {
   texture.minFilter = NearestFilter
 }
 
-export function retroizeMaterial(material: Material) {
+export function retroizeMaterial(material: MeshLambertMaterial | SpriteMaterial) {
 
   const PIXEL_SNAPING = RESOLUTION_HEIGHT / 2
+
+  if (material.map) {
+    retroizeTexture(material.map)
+  }
 
   material.onBeforeCompile = (shader) => {
     shader.vertexShader = shader.vertexShader.replace(

@@ -1,7 +1,7 @@
 import { BufferGeometryUtils } from "three/examples/jsm/Addons.js"
 import { loadTrack } from "../render/loadTrack"
 import { OBJECT_LAYER_NOT_MOVING, Physic } from "../physic/Physic"
-import { BufferGeometry, Material, Mesh, MeshLambertMaterial, RepeatWrapping, TextureLoader } from "three"
+import { AdditiveBlending, BufferGeometry, Material, Mesh, MeshBasicMaterial, MeshLambertMaterial, RepeatWrapping, Texture, TextureLoader } from "three"
 import { createTriangleShape } from "../physic/createTriangleShape"
 import { MotionType, rigidBody } from "crashcat"
 import { quat, vec3 } from "mathcat"
@@ -22,38 +22,48 @@ export async function createTrack({ physic }: { physic: Physic }) {
     color: 0xddff99,
     // wireframe: true
   });
-  retroizeMaterial(trackMesh.material)
+  retroizeMaterial(trackMesh.material as MeshLambertMaterial)
   trackMesh.receiveShadow = true;
   trackMesh.castShadow = true;
 
   const mountain = trackMeshes.find(mesh => mesh.name === 'mountain')
   if (mountain) {
-    const textureLoader = new TextureLoader()
-    const texture = await textureLoader.loadAsync(imgSrc)
-    // texture.matrix.makeScale(0.0001, 0.0001)
-    // texture.matrix.setUvTransform(0, 0, 0.001, 0.001, 0, 0, 0)
-    texture.wrapS = RepeatWrapping
-    texture.wrapT = RepeatWrapping
-    texture.repeat.set(20, 20)
-
-    retroizeTexture(texture);
-    // texture.updateMatrix()
-
-    mountain.material = new MeshLambertMaterial({ map: texture, color: 0xddff99 })
+    // const textureLoader = new TextureLoader()
+    // const texture = await textureLoader.loadAsync(imgSrc)
+    // texture.wrapS = RepeatWrapping
+    // texture.wrapT = RepeatWrapping
+    // texture.repeat.set(20, 20)
+    // retroizeTexture(texture);
+    // mountain.material = new MeshLambertMaterial({ map: texture, color: 0xddff99 })
   }
 
   for (const mesh of trackMeshes.filter(m => m.name.indexOf('physic') > -1)) {
     createPhysic({ physic, mesh })
   }
 
+  // Tunel lights
   for (const light of trackLights) {
     light.intensity = 200
   }
 
-  for (const mesh of trackMeshes) {
-    retroizeMaterial(mesh.material as Material)
+  // Skybox
+  for (const mesh of trackMeshes.filter(mesh => mesh.name.indexOf('sky') !== -1)) {
+    mesh.material = new MeshBasicMaterial({
+      map: (mesh.material as MeshLambertMaterial).map
+    })
+    retroizeMaterial(mesh.material as MeshLambertMaterial)
+  }
+
+  for (const mesh of trackMeshes.filter(mesh => mesh.name.indexOf('sky') === -1)) {
+    retroizeMaterial(mesh.material as MeshLambertMaterial)
     mesh.receiveShadow = true;
     mesh.castShadow = true;
+  }
+
+  // Clouds
+  for (const { material } of trackMeshes.filter(m => m.name.indexOf('cloud') > -1)) {
+    (material as MeshLambertMaterial).blending = AdditiveBlending;
+    (material as MeshLambertMaterial).depthWrite = false
   }
 
   return {

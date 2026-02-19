@@ -78,7 +78,7 @@ export async function createCharacter({ physic, shipMesh }: { physic: Physic, sh
   lightRightSprite.position.set(1.3, 0, -0.5)
   lightLeftSprite.scale.set(LIGHT_SCALE_MIN, LIGHT_SCALE_MIN, LIGHT_SCALE_MIN)
   lightRightSprite.scale.set(LIGHT_SCALE_MIN, LIGHT_SCALE_MIN, LIGHT_SCALE_MIN)
-  retroizeMaterial(material)
+  retroizeMaterial(material as MeshLambertMaterial)
   shipMesh.add(lightLeftSprite, lightRightSprite)
 
   // const light = new SpotLight(0xFF0000, 1, 100, Math.PI / 2)
