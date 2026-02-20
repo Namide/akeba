@@ -1,11 +1,11 @@
 import { Mesh, Raycaster, Vector3 } from "three";
+import { rigidBody, sphere } from "crashcat";
 import { createKeyboardInputs } from "../inputs/keyboardControls";
 import { createCharacter } from "../entities/createCharacter";
 import { log } from "../helpers/log";
 import { Physic } from "../physic/Physic";
 import { createInputs } from "../inputs/inputs";
 import { createGamepadInputs } from "../inputs/gamepadControls";
-import { rigidBody, sphere } from "crashcat";
 import { Render } from "../render/Render";
 import { LIGHT_SCALE_MAX, LIGHT_SCALE_MIN } from "../config";
 

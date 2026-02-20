@@ -1,5 +1,5 @@
-import { triangleMesh } from "crashcat";
 import { BufferGeometry, Vector3 } from "three";
+import { triangleMesh } from "crashcat";
 
 export function createTriangleShape(geometry: BufferGeometry, { activeEdgeCosThresholdAngle }: { activeEdgeCosThresholdAngle?: number } = {}) {
   const allPositions: number[] = [];

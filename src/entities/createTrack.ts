@@ -1,10 +1,10 @@
+import { AdditiveBlending, BufferGeometry, Mesh, MeshBasicMaterial, MeshLambertMaterial } from "three"
+import { MotionType, rigidBody } from "crashcat"
+import { quat, vec3 } from "mathcat"
 import { BufferGeometryUtils } from "three/examples/jsm/Addons.js"
 import { loadTrack } from "../render/loadTrack"
 import { OBJECT_LAYER_NOT_MOVING, Physic } from "../physic/Physic"
-import { AdditiveBlending, BufferGeometry, Mesh, MeshBasicMaterial, MeshLambertMaterial } from "three"
 import { createTriangleShape } from "../physic/createTriangleShape"
-import { MotionType, rigidBody } from "crashcat"
-import { quat, vec3 } from "mathcat"
 import { retroizeMaterial } from "../render/retroize"
 
 export async function createTrack({ physic }: { physic: Physic }) {
@@ -41,13 +41,14 @@ export async function createTrack({ physic }: { physic: Physic }) {
 
   // Tunel lights
   for (const light of trackLights) {
-    light.intensity = 200
+    console.log(light.intensity)
+    light.intensity /= 1360
   }
 
   // Skybox
   for (const mesh of trackMeshes.filter(mesh => mesh.name.indexOf('sky') !== -1)) {
     mesh.material = new MeshBasicMaterial({
-      map: (mesh.material as MeshLambertMaterial).map
+      map: (mesh.material as MeshLambertMaterial).emissiveMap
     })
     retroizeMaterial(mesh.material as MeshLambertMaterial)
   }
@@ -59,9 +60,16 @@ export async function createTrack({ physic }: { physic: Physic }) {
   }
 
   // Clouds
-  for (const { material } of trackMeshes.filter(m => m.name.indexOf('cloud') > -1)) {
-    (material as MeshLambertMaterial).blending = AdditiveBlending;
-    (material as MeshLambertMaterial).depthWrite = false
+  for (const mesh of trackMeshes.filter(mesh => mesh.name.indexOf('cloud') > -1)) {
+
+
+    mesh.material = new MeshBasicMaterial({
+      map: (mesh.material as MeshLambertMaterial).map
+    })
+    retroizeMaterial(mesh.material as MeshLambertMaterial);
+
+    (mesh.material as MeshLambertMaterial).blending = AdditiveBlending;
+    (mesh.material as MeshLambertMaterial).depthWrite = false
   }
 
   return {

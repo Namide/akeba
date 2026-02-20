@@ -38,10 +38,10 @@ export class Render {
     this.camera.position.set(0, 3, 8);
 
     // ===== 💡 LIGHTS =====
-    this.ambientLight = new AmbientLight(0xaaccff, .1);
+    this.ambientLight = new AmbientLight('#BB77FF', .5);
     this.scene.add(this.ambientLight);
 
-    this.directionalLight = new DirectionalLight(0xffeeaa, 1.3);
+    this.directionalLight = new DirectionalLight('#FFF0CA', 1.3);
     this.directionalLight.castShadow = true;
     this.directionalLight.shadow.radius = 1;
     this.directionalLight.shadow.bias = -0.0005;

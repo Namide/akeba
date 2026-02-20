@@ -35,3 +35,16 @@ const circuitShape = world.createTriangleMeshShape({
   activeEdgeCosThresholdAngle: 0.966, // cos(15°), bon point de départ
 });
 ```
+
+
+// ---
+
+
+#FFB750
+#FF191E
+
+
+
+#454545
+#FFD22E
+#E0007F
