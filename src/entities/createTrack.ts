@@ -6,7 +6,6 @@ import { createTriangleShape } from "../physic/createTriangleShape"
 import { MotionType, rigidBody } from "crashcat"
 import { quat, vec3 } from "mathcat"
 import { retroizeMaterial } from "../render/retroize"
-import { computeBoundsTree, ComputeBVHOptions } from "three-mesh-bvh"
 
 export async function createTrack({ physic }: { physic: Physic }) {
   // Track
