@@ -23,7 +23,6 @@ export function createCameraPosition(render: Render, character: Mesh) {
       character.getWorldDirection(direction)
       direction.negate()
 
-
       const perpendicular = new Vector3()
         .crossVectors(new Vector3(0, 1, 0), direction.clone().normalize());
 

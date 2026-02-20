@@ -51,12 +51,21 @@ const cameraPosition = createCameraPosition(render, character3D.characterBaseMes
 // const { skybox } = await createSkybox()
 // render.scene.add(skybox)
 
+// let restSec = 0
+// const FRAME_SEC = 1 / 144
 attachTick(({ deltaS }) => {
 
   updateWorld(physic.world, undefined, deltaS);
 
-  characterTick.tick({ deltaS })
-  cameraPosition.tick()
+  // Fix framerate variations
+  // restSec += deltaS
+  // while (restSec >= FRAME_SEC) {
+  //   characterTick.tick({ deltaS: FRAME_SEC })
+  //   restSec -= FRAME_SEC
+  // }
 
+  characterTick.tick({ deltaS })
+
+  cameraPosition.tick()
   render.render()
 })

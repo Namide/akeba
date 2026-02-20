@@ -11,10 +11,10 @@ import { LIGHT_SCALE_MAX, LIGHT_SCALE_MIN } from "../config";
 
 
 const MAX_VELOCITY = 250
-const TURN_ABILITY = 2 // 0 = not, 1 = instant
-const BRAKE_TURN_ABILITY = 3.5
+const TURN_ABILITY = 0.8 // 0 = not, 1 = instant
+const BRAKE_TURN_ABILITY = 0.85
 const REACTIVITY = 0.5
-const BRAKE_REACTIVITY = 0.002
+const BRAKE_REACTIVITY = 0.99
 const FLY_HEIGHT = 0.5
 
 const UP = new Vector3(0, 1, 0)
@@ -34,15 +34,17 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
 
       // characterBody.clearForces();
 
+      // deltaS = 1 / 150
+
       tickGamepad()
 
       updatePhysicDirection(physicVelocity, characterBody)
       // physicVelocity = physicVelocity.length()
 
       // Update ground normal
-      const groundDistance = updateGroundNormal(groundNormal, characterBody, trackMesh)
+      const groundDistance = updateGroundNormal(groundNormal, characterBody, trackMesh, deltaS)
 
-      const turn = deltaS * (inputs.brake ? BRAKE_TURN_ABILITY : TURN_ABILITY)
+      const turn = (inputs.brake ? getAlphaLerp(BRAKE_TURN_ABILITY, deltaS) : getAlphaLerp(TURN_ABILITY, deltaS))
 
       if (inputs.left) {
         const perpendicular = new Vector3()
@@ -58,11 +60,13 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
       if (inputs.forward) {
         nextSpeed = MAX_VELOCITY
 
-        const scale = lightRightSprite.scale.x + (LIGHT_SCALE_MAX - lightRightSprite.scale.x) * deltaS * 2
+        const scale = lightRightSprite.scale.x + (LIGHT_SCALE_MAX - lightRightSprite.scale.x) * getAlphaLerp(0.999, deltaS)
         lightRightSprite.scale.set(scale, scale, scale)
         lightLeftSprite.scale.set(scale, scale, scale)
+
       } else {
-        const scale = lightRightSprite.scale.x + (LIGHT_SCALE_MIN - lightRightSprite.scale.x) * deltaS * 10
+
+        const scale = lightRightSprite.scale.x + (LIGHT_SCALE_MIN - lightRightSprite.scale.x) * getAlphaLerp(0.9999, deltaS)
         lightRightSprite.scale.set(scale, scale, scale)
         lightLeftSprite.scale.set(scale, scale, scale)
 
@@ -93,12 +97,12 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
       const oldCameraLookAt = characterBaseMesh.getWorldDirection(new Vector3())
       const perpendicularDirectionCamera = new Vector3()
         .crossVectors(UP, playerDirection.normalize());
-      characterBaseMesh.position.lerp({ x: characterBody.position[0], y: characterBody.position[1], z: characterBody.position[2] }, deltaS * 36);
+      characterBaseMesh.position.lerp({ x: characterBody.position[0], y: characterBody.position[1], z: characterBody.position[2] }, getAlphaLerp(0.99999999999999989, deltaS));
       characterBaseMesh.lookAt(
         characterBaseMesh.position.clone().add(oldCameraLookAt)
           .lerp(
             characterBaseMesh.position.clone().add(perpendicularDirectionCamera),
-            inputs.brake ? 7.2 * deltaS : 11.5 * deltaS
+            inputs.brake ? getAlphaLerp(0.9999, deltaS) : getAlphaLerp(0.999999, deltaS)
           )
       );
 
@@ -110,17 +114,17 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
       const perpendicularDirectionVehicle = new Vector3()
         .crossVectors(shipNormal, playerDirection);
       const oldShipLookAt = characterMesh.getWorldDirection(new Vector3())
-      characterMesh.position.x += (characterBody.position[0] - characterMesh.position.x) * 130 * deltaS
-      characterMesh.position.y += (characterBody.position[1] + FLY_HEIGHT - characterMesh.position.y) * 50 * deltaS
-      characterMesh.position.z += (characterBody.position[2] - characterMesh.position.z) * 130 * deltaS
+      characterMesh.position.x += (characterBody.position[0] - characterMesh.position.x) * getAlphaLerp(0.999999999999999999, deltaS)
+      characterMesh.position.y += (characterBody.position[1] + FLY_HEIGHT - characterMesh.position.y) * getAlphaLerp(0.9999999999999, deltaS)
+      characterMesh.position.z += (characterBody.position[2] - characterMesh.position.z) * getAlphaLerp(0.999999999999999999, deltaS)
 
 
-      characterMesh.up.lerp(shipNormal, 14 * deltaS)
+      characterMesh.up.lerp(shipNormal, getAlphaLerp(0.999, deltaS))
       characterMesh.lookAt(
         characterMesh.position.clone().add(oldShipLookAt)
           .lerp(
-            characterMesh.position.clone().add(perpendicularDirectionVehicle)
-            , 14 * deltaS
+            characterMesh.position.clone().add(perpendicularDirectionVehicle),
+            getAlphaLerp(0.999999, deltaS)
           )
       );
 
@@ -149,7 +153,7 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
 const raycaster = new Raycaster();
 raycaster.firstHitOnly = true;
 const DOWN = new Vector3(0, -1, 0);
-function updateGroundNormal(groundNormal: Vector3, characterBody: Parameters<typeof createCharacterControls>[0]['characterBody'], trackMesh: Mesh) {
+function updateGroundNormal(groundNormal: Vector3, characterBody: Parameters<typeof createCharacterControls>[0]['characterBody'], trackMesh: Mesh, deltaS: number) {
 
   const temp = new Vector3(...characterBody.position)
   let distance = 20
@@ -161,12 +165,12 @@ function updateGroundNormal(groundNormal: Vector3, characterBody: Parameters<typ
     const normal = hits[0].face!.normal.clone()
       .transformDirection(trackMesh.matrixWorld); // local → world space
 
-    groundNormal.lerp(normal, 0.15);
+    groundNormal.lerp(normal, getAlphaLerp(0.15, deltaS));
     groundNormal.normalize();
     distance = Math.max(0, hits[0].distance - (characterBody.shape as sphere.SphereShape).radius)
   } else {
     // dans les airs
-    groundNormal.lerp(UP, 0.05);
+    groundNormal.lerp(UP, getAlphaLerp(0.05, deltaS));
     groundNormal.normalize();
   }
 
@@ -205,6 +209,11 @@ function updateGroundNormal(groundNormal: Vector3, characterBody: Parameters<typ
   // groundNormal.normalize()
 
   // return meshes
+}
+
+// To prevent deltaT variations
+function getAlphaLerp(lerpFactorPerSecond: number, deltaS: number) {
+  return 1 - Math.pow(1 - lerpFactorPerSecond, deltaS);
 }
 
 function updatePhysicDirection(physicVelocity: Vector3, characterBody: Parameters<typeof createCharacterControls>[0]['characterBody']) {
