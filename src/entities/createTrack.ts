@@ -72,11 +72,24 @@ export async function createTrack({ physic }: { physic: Physic }) {
     (mesh.material as MeshLambertMaterial).depthWrite = false
   }
 
+  const fogMeshes = trackMeshes.filter(mesh => mesh.name.indexOf('fog') > -1)
+  for (const mesh of fogMeshes) {
+    mesh.material = new MeshBasicMaterial({
+      map: (mesh.material as MeshLambertMaterial).emissiveMap
+    })
+    retroizeMaterial(mesh.material as MeshLambertMaterial);
+
+    (mesh.material as MeshLambertMaterial).blending = AdditiveBlending;
+    (mesh.material as MeshLambertMaterial).depthWrite = false;
+    mesh.userData = { velocity: Math.random() * 0.3 + 0.3 }
+  }
+
   return {
     trackBody,
     trackMesh,
     trackMeshes,
     trackLights,
+    fogMeshes,
     shipMesh
   }
 }

@@ -28,7 +28,7 @@ render.resize()
 
 const physic = new Physic()
 
-const { trackMesh, trackMeshes, shipMesh, trackLights } = await createTrack({ physic })
+const { trackMesh, trackMeshes, shipMesh, trackLights, fogMeshes } = await createTrack({ physic })
 render.scene.add(trackMesh, ...trackMeshes, ...trackLights);
 
 const character3D = await createCharacter({ physic, shipMesh })
@@ -40,10 +40,13 @@ const characterTick = createCharacterControls({ ...character3D, physic, render, 
 
 const cameraPosition = createCameraPosition(render, character3D.characterBaseMesh)
 
-
+const startTime = Date.now()
 attachTick(({ deltaS }) => {
   updateWorld(physic.world, undefined, deltaS);
   characterTick.tick({ deltaS })
   cameraPosition.tick()
+  for (const fog of fogMeshes) {
+    fog.rotation.y = fog.userData.velocity * (Date.now() - startTime) / 20000
+  }
   render.render()
 })
