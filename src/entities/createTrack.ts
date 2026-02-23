@@ -1,4 +1,4 @@
-import { AddEquation, AdditiveBlending, BufferGeometry, CustomBlending, Group, Mesh, MeshBasicMaterial, MeshLambertMaterial, OneMinusSrcAlphaFactor, SrcAlphaFactor, SrcColorFactor } from "three"
+import { AdditiveBlending, BufferGeometry, Group, Mesh, MeshBasicMaterial, MeshLambertMaterial } from "three"
 import { MotionType, rigidBody } from "crashcat"
 import { quat, vec3 } from "mathcat"
 import { BufferGeometryUtils } from "three/examples/jsm/Addons.js"
@@ -13,10 +13,10 @@ export async function createTrack({ physic }: { physic: Physic }) {
   // Track
   const { trackMesh, trackMeshes, shipMesh, trackLights, controlMeshes, homeMeshes, creditsMeshes, outMesh } = await loadTrack()
 
-  const { body: trackBody, dispose: trackDispose } = createPhysic({ physic, mesh: trackMesh, isOut: false })
+  const { body: trackBody, dispose: trackDispose } = createPhysic({ physic, mesh: trackMesh })
   disposeCallbacks.push(trackDispose)
 
-  const outData = createPhysic({ physic, mesh: outMesh, isOut: true })
+  const outData = createPhysic({ physic, mesh: outMesh })
   disposeCallbacks.push(outData.dispose)
 
   retroizeMaterial(trackMesh.material as MeshLambertMaterial)
@@ -28,7 +28,7 @@ export async function createTrack({ physic }: { physic: Physic }) {
   cleanMenu(creditsMeshes)
 
   for (const mesh of trackMeshes.filter(m => m.name.indexOf('physic') > -1)) {
-    const data = createPhysic({ physic, mesh, isOut: false })
+    const data = createPhysic({ physic, mesh })
     disposeCallbacks.push(data.dispose)
   }
 
@@ -128,7 +128,7 @@ function cleanMenu(group: Group) {
   })
 }
 
-function createPhysic({ physic, mesh, isOut }: { physic: Physic, mesh: Mesh, isOut: boolean }) {
+function createPhysic({ physic, mesh }: { physic: Physic, mesh: Mesh }) {
   let trackGeometry = mesh.geometry.clone() as BufferGeometry
 
   // Perf: x10 https://www.npmjs.com/package/three-mesh-bvh

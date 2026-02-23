@@ -19,7 +19,7 @@ render.resize()
 
 const physic = new Physic()
 
-const { trackMesh, trackBody, trackMeshes, shipMesh, trackLights, fogMeshes, trackDispose, controlMeshes, homeMeshes, creditsMeshes, outBody } = await createTrack({ physic })
+const { trackMesh, trackBody, trackMeshes, shipMesh, trackLights, fogMeshes, controlMeshes, homeMeshes, creditsMeshes, outBody } = await createTrack({ physic })
 render.scene.add(trackMesh, ...trackMeshes, ...trackLights);
 
 const character3D = await createCharacter({ physic, shipMesh })
@@ -53,7 +53,7 @@ const physicListener = createPhysicListener([
 
 
 const startTime = Date.now()
-const { dispose: disposeTick } = attachTick(({ deltaS }) => {
+attachTick(({ deltaS }) => {
   if (isPlaying) {
     updateWorld(physic.world, physicListener, deltaS);
     characterControls.tick({ deltaS })

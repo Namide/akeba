@@ -172,30 +172,6 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
 const raycaster = new Raycaster();
 raycaster.firstHitOnly = true;
 const DOWN = new Vector3(0, -1, 0);
-function updateGroundNormal(groundNormal: Vector3, characterBody: Parameters<typeof createCharacterControls>[0]['characterBody'], trackMesh: Mesh, deltaS: number) {
-
-  const temp = new Vector3(...characterBody.position)
-  let distance = 20
-
-  raycaster.set(temp, DOWN);
-  const hits = raycaster.intersectObject(trackMesh, false);
-
-  if (hits.length > 0) {
-    const normal = hits[0].face!.normal.clone()
-      .transformDirection(trackMesh.matrixWorld); // local → world space
-
-    groundNormal.lerp(normal, getAlphaLerp(0.15, deltaS));
-    groundNormal.normalize();
-    distance = Math.max(0, hits[0].distance - (characterBody.shape as sphere.SphereShape).radius)
-  } else {
-    // dans les airs
-    groundNormal.lerp(UP, getAlphaLerp(0.05, deltaS));
-    groundNormal.normalize();
-  }
-
-  return distance
-}
-
 function getGroundDistance(characterBody: Parameters<typeof createCharacterControls>[0]['characterBody'], trackMesh: Mesh) {
 
   const temp = new Vector3(...characterBody.position)
