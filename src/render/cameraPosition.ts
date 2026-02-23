@@ -18,7 +18,7 @@ export function createCameraPosition(render: Render, character: Mesh) {
   }
 
   return {
-    tick: () => {
+    gameTick: () => {
       const direction = new Vector3()
       character.getWorldDirection(direction)
       direction.negate()

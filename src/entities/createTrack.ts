@@ -1,4 +1,4 @@
-import { AdditiveBlending, BufferGeometry, Mesh, MeshBasicMaterial, MeshLambertMaterial } from "three"
+import { AddEquation, AdditiveBlending, BufferGeometry, CustomBlending, Group, Mesh, MeshBasicMaterial, MeshLambertMaterial, OneMinusSrcAlphaFactor, SrcAlphaFactor, SrcColorFactor } from "three"
 import { MotionType, rigidBody } from "crashcat"
 import { quat, vec3 } from "mathcat"
 import { BufferGeometryUtils } from "three/examples/jsm/Addons.js"
@@ -8,35 +8,28 @@ import { createTriangleShape } from "../physic/createTriangleShape"
 import { retroizeMaterial } from "../render/retroize"
 
 export async function createTrack({ physic }: { physic: Physic }) {
-  // Track
-  const { trackMesh, trackMeshes, shipMesh, trackLights } = await loadTrack()
+  const disposeCallbacks: (() => any)[] = []
 
-  const trackBody = createPhysic({ physic, mesh: trackMesh })
-  // const textureLoader = new TextureLoader()
-  // const texture = await textureLoader.loadAsync(imgSrc)
-  // retroizeTexture(texture)
-  // trackMesh.material = new MeshLambertMaterial({
-  //   map: texture,
-  //   color: 0xddff99,
-  //   // wireframe: true
-  // });
+  // Track
+  const { trackMesh, trackMeshes, shipMesh, trackLights, controlMeshes, homeMeshes, creditsMeshes, outMesh } = await loadTrack()
+
+  const { body: trackBody, dispose: trackDispose } = createPhysic({ physic, mesh: trackMesh, isOut: false })
+  disposeCallbacks.push(trackDispose)
+
+  const outData = createPhysic({ physic, mesh: outMesh, isOut: true })
+  disposeCallbacks.push(outData.dispose)
+
   retroizeMaterial(trackMesh.material as MeshLambertMaterial)
   trackMesh.receiveShadow = true;
   trackMesh.castShadow = true;
 
-  const mountain = trackMeshes.find(mesh => mesh.name === 'mountain')
-  if (mountain) {
-    // const textureLoader = new TextureLoader()
-    // const texture = await textureLoader.loadAsync(imgSrc)
-    // texture.wrapS = RepeatWrapping
-    // texture.wrapT = RepeatWrapping
-    // texture.repeat.set(20, 20)
-    // retroizeTexture(texture);
-    // mountain.material = new MeshLambertMaterial({ map: texture, color: 0xddff99 })
-  }
+  cleanMenu(controlMeshes)
+  cleanMenu(homeMeshes)
+  cleanMenu(creditsMeshes)
 
   for (const mesh of trackMeshes.filter(m => m.name.indexOf('physic') > -1)) {
-    createPhysic({ physic, mesh })
+    const data = createPhysic({ physic, mesh, isOut: false })
+    disposeCallbacks.push(data.dispose)
   }
 
   // Tunel lights
@@ -61,8 +54,6 @@ export async function createTrack({ physic }: { physic: Physic }) {
 
   // Clouds
   for (const mesh of trackMeshes.filter(mesh => mesh.name.indexOf('cloud') > -1)) {
-
-
     mesh.material = new MeshBasicMaterial({
       map: (mesh.material as MeshLambertMaterial).map
     })
@@ -70,18 +61,22 @@ export async function createTrack({ physic }: { physic: Physic }) {
 
     (mesh.material as MeshLambertMaterial).blending = AdditiveBlending;
     (mesh.material as MeshLambertMaterial).depthWrite = false
+
+    mesh.visible = false // Fix fog + additive error
   }
 
   const fogMeshes = trackMeshes.filter(mesh => mesh.name.indexOf('fog') > -1)
   for (const mesh of fogMeshes) {
     mesh.material = new MeshBasicMaterial({
-      map: (mesh.material as MeshLambertMaterial).emissiveMap
+      map: (mesh.material as MeshLambertMaterial).emissiveMap,
     })
     retroizeMaterial(mesh.material as MeshLambertMaterial);
 
     (mesh.material as MeshLambertMaterial).blending = AdditiveBlending;
     (mesh.material as MeshLambertMaterial).depthWrite = false;
     mesh.userData = { velocity: Math.random() * 0.3 + 0.3 }
+
+    mesh.visible = false // Fix fog + additive error
   }
 
   return {
@@ -90,11 +85,50 @@ export async function createTrack({ physic }: { physic: Physic }) {
     trackMeshes,
     trackLights,
     fogMeshes,
-    shipMesh
+    shipMesh,
+
+    outBody: outData.body,
+
+    controlMeshes,
+    homeMeshes,
+    creditsMeshes,
+
+    trackDispose: () => {
+      for (const cb of disposeCallbacks) {
+        cb()
+      }
+    }
   }
 }
 
-function createPhysic({ physic, mesh }: { physic: Physic, mesh: Mesh }) {
+function cleanMenu(group: Group) {
+  group.traverse((object) => {
+    if ((object as Mesh).isMesh) {
+
+      const mesh = object as Mesh<BufferGeometry, MeshLambertMaterial | MeshBasicMaterial>
+
+      if (mesh.name.indexOf('wireframe') > -1) {
+
+        mesh.material = new MeshBasicMaterial({
+          wireframe: true,
+          color: '#ffffff'
+        })
+      } else {
+
+        const texture = (mesh.material as MeshLambertMaterial).emissiveMap!
+
+        mesh.material = new MeshBasicMaterial({
+          map: texture,
+          transparent: true,
+        })
+
+        retroizeMaterial(mesh.material as any as MeshLambertMaterial)
+      }
+    }
+  })
+}
+
+function createPhysic({ physic, mesh, isOut }: { physic: Physic, mesh: Mesh, isOut: boolean }) {
   let trackGeometry = mesh.geometry.clone() as BufferGeometry
 
   // Perf: x10 https://www.npmjs.com/package/three-mesh-bvh
@@ -121,11 +155,10 @@ function createPhysic({ physic, mesh }: { physic: Physic, mesh: Mesh }) {
     friction: 0.5,
 
     enhancedInternalEdgeRemoval: true,
-    // useManifoldReduction: true, // Fix normals ?
   });
 
-  // mesh.position.set(...body.position);
-  // mesh.quaternion.set(...body.quaternion);
-
-  return body
+  return {
+    body,
+    dispose: () => mesh.geometry.computeBoundsTree()
+  }
 }

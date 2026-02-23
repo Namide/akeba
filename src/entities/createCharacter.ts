@@ -16,9 +16,8 @@ import { retroizeMaterial, retroizeTexture } from '../render/retroize';
 import { DEBUG, LIGHT_SCALE_MIN } from '../config';
 
 export async function createCharacter({ physic, shipMesh }: { physic: Physic, shipMesh: Mesh }) {
-  const characterRadius = 0.8;
+  const characterRadius = 1.1;
 
-  // create the character
   const shape = sphere.create({
     radius: characterRadius,
   })

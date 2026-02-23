@@ -8,11 +8,12 @@ import { createInputs } from "../inputs/inputs";
 import { createGamepadInputs } from "../inputs/gamepadControls";
 import { Render } from "../render/Render";
 import { LIGHT_SCALE_MAX, LIGHT_SCALE_MIN } from "../config";
+import { quat, vec3 } from "mathcat";
 
 
 const MAX_VELOCITY = 250
 const TURN_ABILITY = 0.8 // 0 = not, 1 = instant
-const BRAKE_TURN_ABILITY = 0.85
+const BRAKE_TURN_ABILITY = 0.95
 const REACTIVITY = 0.5
 const BRAKE_REACTIVITY = 0.99
 const FLY_HEIGHT = 0.5
@@ -20,6 +21,7 @@ const FLY_HEIGHT = 0.5
 const UP = new Vector3(0, 1, 0)
 
 export function createCharacterControls({ characterBody, characterBodyMesh, characterMesh, characterBaseMesh, lightLeftSprite, lightRightSprite, physic, trackMesh }: Awaited<ReturnType<typeof createCharacter>> & { physic: Physic, render: Render, trackMesh: Mesh }) {
+
   const inputs = createInputs()
   const { dispose: disposeKeyboard } = createKeyboardInputs(inputs)
   const { tick: tickGamepad } = createGamepadInputs(inputs)
@@ -29,17 +31,27 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
   const physicVelocity = new Vector3(-1, 0, 0)
   const thrust = playerDirection.clone()
 
+  const INIT_POSITION = [...characterBody.position] as [number, number, number]
+  const INIT_QUATERNION = [...characterBody.quaternion] as [number, number, number, number]
+
   return {
+    restart: () => {
+      playerDirection.set(-1, 0, 0)
+      physicVelocity.set(-1, 0, 0)
+      thrust.set(-1, 0, 0)
+      rigidBody.setLinearVelocity(physic.world, characterBody, [
+        0,
+        0,
+        0,
+      ])
+      rigidBody.setTransform(physic.world, characterBody, vec3.fromValues(...INIT_POSITION), quat.fromValues(...INIT_QUATERNION), true)
+    },
+
     tick: ({ deltaS }: { deltaS: number }) => {
-
-      // characterBody.clearForces();
-
-      // deltaS = 1 / 150
 
       tickGamepad()
 
       updatePhysicDirection(physicVelocity, characterBody)
-      // physicVelocity = physicVelocity.length()
 
       // Update ground normal
       const groundDistance = updateGroundNormal(groundNormal, characterBody, trackMesh, deltaS)
@@ -74,8 +86,6 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
           nextSpeed = 0
         }
       }
-
-
 
       thrust.copy(playerDirection).multiplyScalar(nextSpeed)
 
@@ -144,6 +154,7 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
         'turnDirection: ' + JSON.stringify(turnDirection.toArray().map(n => n.toFixed(2)).join(', '))
       )
     },
+
     dispose: () => {
       disposeKeyboard()
     }

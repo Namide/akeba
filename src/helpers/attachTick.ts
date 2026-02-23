@@ -19,6 +19,7 @@ export function attachTick(tick: (options: { deltaS: number, now: number }) => v
 
     tick({ now, deltaS })
   }
+
   onTick()
 
   return {

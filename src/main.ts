@@ -1,17 +1,5 @@
 import './style.css';
-import { BatchedMesh, BufferGeometry, Mesh } from 'three';
-import {
-  computeBoundsTree, disposeBoundsTree,
-  computeBatchedBoundsTree, disposeBatchedBoundsTree, acceleratedRaycast,
-} from 'three-mesh-bvh';
-
-BufferGeometry.prototype.computeBoundsTree = computeBoundsTree;
-BufferGeometry.prototype.disposeBoundsTree = disposeBoundsTree;
-Mesh.prototype.raycast = acceleratedRaycast;
-
-BatchedMesh.prototype.computeBoundsTree = computeBatchedBoundsTree;
-BatchedMesh.prototype.disposeBoundsTree = disposeBatchedBoundsTree;
-BatchedMesh.prototype.raycast = acceleratedRaycast;
+import './helpers/initThree'
 
 import { updateWorld } from "crashcat";
 import { Render } from "./render/Render";
@@ -21,14 +9,17 @@ import { createCharacter } from "./entities/createCharacter";
 import { createCameraPosition } from "./render/cameraPosition";
 import { createCharacterControls } from "./gameplay/createCharacterControls";
 import { createTrack } from "./entities/createTrack";
+import { Object3D, PerspectiveCamera, Vector3 } from 'three';
+import { createPhysicListener } from './physic/createPhysicListener';
 
+let isPlaying = true
 
 const render = new Render(document.body.querySelector('canvas')!)
 render.resize()
 
 const physic = new Physic()
 
-const { trackMesh, trackMeshes, shipMesh, trackLights, fogMeshes } = await createTrack({ physic })
+const { trackMesh, trackMeshes, shipMesh, trackLights, fogMeshes, trackDispose, controlMeshes, homeMeshes, creditsMeshes, outBody } = await createTrack({ physic })
 render.scene.add(trackMesh, ...trackMeshes, ...trackLights);
 
 const character3D = await createCharacter({ physic, shipMesh })
@@ -36,17 +27,105 @@ render.scene.add(character3D.characterMesh);
 render.scene.add(character3D.characterBodyMesh);
 render.scene.add(character3D.characterBaseMesh);
 
-const characterTick = createCharacterControls({ ...character3D, physic, render, trackMesh })
+const characterControls = createCharacterControls({ ...character3D, physic, render, trackMesh })
 
 const cameraPosition = createCameraPosition(render, character3D.characterBaseMesh)
 
+
+
+const physicListener = createPhysicListener(character3D.characterBody, [outBody], {
+  onOut: () => {
+    characterControls.restart()
+  }
+})
+
 const startTime = Date.now()
-attachTick(({ deltaS }) => {
-  updateWorld(physic.world, undefined, deltaS);
-  characterTick.tick({ deltaS })
-  cameraPosition.tick()
+const { dispose: disposeTick } = attachTick(({ deltaS }) => {
+  if (isPlaying) {
+    updateWorld(physic.world, physicListener, deltaS);
+    characterControls.tick({ deltaS })
+
+    if (cameraPosition.gameTick) {
+      cameraPosition.gameTick()
+    }
+  }
+
+  if (cameraPosition.tick) {
+    cameraPosition.tick()
+  }
+
   for (const fog of fogMeshes) {
     fog.rotation.y = fog.userData.velocity * (Date.now() - startTime) / 20000
   }
+
   render.render()
 })
+
+
+// Screens
+
+const changeScreen = (screen: 'controls' | 'home' | 'credits' | 'play') => {
+  const objectsAdd: Object3D[] = []
+  const objectsRemove: Object3D[] = []
+
+  switch (screen) {
+    case 'play':
+      objectsRemove.push(controlMeshes, homeMeshes, creditsMeshes)
+      isPlaying = true
+      break
+    case 'home':
+      objectsAdd.push(homeMeshes)
+      objectsRemove.push(controlMeshes, creditsMeshes)
+      isPlaying = false
+      break
+    case 'credits':
+      objectsAdd.push(creditsMeshes)
+      objectsRemove.push(controlMeshes, homeMeshes)
+      isPlaying = false
+      break
+    case 'controls':
+      objectsAdd.push(controlMeshes)
+      objectsRemove.push(homeMeshes, creditsMeshes)
+      isPlaying = false
+      break
+  }
+
+  let camera: PerspectiveCamera | undefined
+  for (const group of objectsAdd) {
+    group.traverse(object => {
+      if ((object as PerspectiveCamera).isCamera) {
+        camera = object as PerspectiveCamera
+      }
+    })
+  }
+
+  if (camera) {
+    render.camera.fov = 50
+    render.camera.position.copy(camera.position)
+    render.camera.quaternion.copy(camera.quaternion)
+    render.camera.updateProjectionMatrix();
+
+    for (const object3D of objectsAdd) {
+      const pos = camera.getWorldPosition(new Vector3())
+      pos.add(
+        camera.getWorldDirection(new Vector3()).multiplyScalar(3)
+      )
+
+      object3D.position.copy(pos)
+      object3D.quaternion.copy(camera.quaternion)
+    }
+  }
+
+  render.scene.remove(...objectsRemove)
+  render.scene.add(...objectsAdd)
+}
+
+changeScreen('play')
+
+
+// return {
+//   dispose() {
+//     disposeTick()
+//     trackDispose()
+//   }
+// }

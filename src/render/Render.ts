@@ -2,6 +2,7 @@ import {
   AmbientLight,
   CameraHelper,
   DirectionalLight,
+  Fog,
   PCFShadowMap,
   PerspectiveCamera,
   Scene,
@@ -32,7 +33,9 @@ export class Render {
     this.renderer.setPixelRatio(this.pixelRatio);
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = PCFShadowMap;
+
     this.scene = new Scene();
+    this.scene.fog = new Fog('#8e8ac0', 10, 1500);
 
     this.camera = new PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 1, 6000);
     this.camera.position.set(0, 3, 8);

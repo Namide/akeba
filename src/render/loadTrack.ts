@@ -1,4 +1,5 @@
 import {
+  Group,
   Light,
   LoadingManager,
   Mesh,
@@ -19,9 +20,21 @@ export async function loadTrack() {
 
   const gltf = await gltfLoader.loadAsync(modelsPath)
 
-  const trackMeshes = gltf.scene.children.filter(mesh => (mesh as any).isMesh) as Mesh[]
+  const groups = gltf.scene.children[0].children[0]
 
-  const trackLights = gltf.scene.children.filter(mesh => (mesh as any).isLight) as Light[]
+  const gameMeshes = groups.children.find(group => group.name === 'game')!.children
+
+  const controlMeshes = new Group()
+  controlMeshes.add(...groups.children.find(group => group.name === 'control-screen')!.children)
+
+  const homeMeshes = new Group()
+  homeMeshes.add(...groups.children.find(group => group.name === 'home-screen')!.children)
+
+  const creditsMeshes = new Group()
+  creditsMeshes.add(...groups.children.find(group => group.name === 'credits-screen')!.children)
+
+  const trackMeshes = gameMeshes.filter(mesh => (mesh as any).isMesh) as Mesh[]
+  const trackLights = gameMeshes.filter(mesh => (mesh as any).isLight) as Light[]
 
   const trackMesh = trackMeshes.find(mesh => mesh.name === 'track') as Mesh
   trackMeshes.splice(trackMeshes.indexOf(trackMesh), 1)
@@ -29,5 +42,8 @@ export async function loadTrack() {
   const shipMesh = trackMeshes.find(mesh => mesh.name === 'ship-01') as Mesh
   trackMeshes.splice(trackMeshes.indexOf(shipMesh), 1)
 
-  return { trackMesh, trackMeshes, shipMesh, trackLights }
+  const outMesh = trackMeshes.find(mesh => mesh.name === 'out-hidden') as Mesh
+  trackMeshes.splice(trackMeshes.indexOf(outMesh), 1)
+
+  return { trackMesh, trackMeshes, shipMesh, trackLights, controlMeshes, homeMeshes, creditsMeshes, outMesh }
 }

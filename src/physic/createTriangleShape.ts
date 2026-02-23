@@ -5,15 +5,11 @@ export function createTriangleShape(geometry: BufferGeometry, { activeEdgeCosThr
   const allPositions: number[] = [];
   const allIndices: number[] = [];
 
-  // const geometry = mesh.geometry
   const positions = geometry.getAttribute('position');
-
-  // const worldMatrix = mesh.matrixWorld;
 
   const vertex = new Vector3();
   for (let i = 0; i < positions.count; i++) {
     vertex.fromBufferAttribute(positions, i);
-    // vertex.applyMatrix4(worldMatrix);
     allPositions.push(vertex.x, vertex.y, vertex.z);
   }
 
@@ -31,7 +27,6 @@ export function createTriangleShape(geometry: BufferGeometry, { activeEdgeCosThr
   return triangleMesh.create({
     positions: allPositions,
     indices: allIndices,
-
     activeEdgeCosThresholdAngle,
   });
 }
