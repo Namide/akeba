@@ -1,5 +1,5 @@
 import { Mesh, Raycaster, Vector3 } from "three";
-import { rigidBody, sphere } from "crashcat";
+import { ContactManifold, RigidBody, rigidBody, sphere } from "crashcat";
 import { createKeyboardInputs } from "../inputs/keyboardControls";
 import { createCharacter } from "../entities/createCharacter";
 import { log } from "../helpers/log";
@@ -27,7 +27,7 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
   const { tick: tickGamepad } = createGamepadInputs(inputs)
 
   const playerDirection = new Vector3(-1, 0, 0)
-  const groundNormal = new Vector3()
+  const groundNormal = new Vector3(0, 1, 0)
   const physicVelocity = new Vector3(-1, 0, 0)
   const thrust = playerDirection.clone()
 
@@ -35,6 +35,12 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
   const INIT_QUATERNION = [...characterBody.quaternion] as [number, number, number, number]
 
   return {
+
+    updateNormal(_a: RigidBody, _b: RigidBody, manifold: ContactManifold) {
+      console.log(manifold.worldSpaceNormal)
+      groundNormal.set(...manifold.worldSpaceNormal)
+    },
+
     restart: () => {
       playerDirection.set(-1, 0, 0)
       physicVelocity.set(-1, 0, 0)
@@ -54,7 +60,9 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
       updatePhysicDirection(physicVelocity, characterBody)
 
       // Update ground normal
-      const groundDistance = updateGroundNormal(groundNormal, characterBody, trackMesh, deltaS)
+      // const groundDistance = updateGroundNormal(groundNormal, characterBody, trackMesh, deltaS)
+
+      const groundDistance = getGroundDistance(characterBody, trackMesh)
 
       const turn = (inputs.brake ? getAlphaLerp(BRAKE_TURN_ABILITY, deltaS) : getAlphaLerp(TURN_ABILITY, deltaS))
 
@@ -186,40 +194,21 @@ function updateGroundNormal(groundNormal: Vector3, characterBody: Parameters<typ
   }
 
   return distance
+}
 
-  // ---
+function getGroundDistance(characterBody: Parameters<typeof createCharacterControls>[0]['characterBody'], trackMesh: Mesh) {
 
-  // let meshes = []
+  const temp = new Vector3(...characterBody.position)
+  let distance = 20
 
-  // const index = characterBody.index
-  // const tempVec3 = new Vector3()
+  raycaster.set(temp, DOWN);
+  const hits = raycaster.intersectObject(trackMesh, false);
 
-  // VECTOR_3.set(0, 0, 0)
-  // for (const contact of physic.world.contacts.contacts) {
+  if (hits.length > 0) {
+    distance = Math.max(0, hits[0].distance - (characterBody.shape as sphere.SphereShape).radius)
+  }
 
-  //   if (contact.bodyIndexA === index || contact.bodyIndexB === index) {
-  //     const [point] = contact.contactPoints
-  //     tempVec3.set(...characterBody.position).sub({ x: point.position1[0], y: point.position1[1], z: point.position1[2] })
-  //     VECTOR_3.add(tempVec3)
-  //   }
-
-  // }
-
-  // if (VECTOR_3.length() < 0.001) {
-  //   VECTOR_3.copy(UP)
-  // } else {
-  //   VECTOR_3.normalize()
-
-  //   const mesh = new ArrowHelper(VECTOR_3, new Vector3(...characterBody.position), 2, 0xFFFFFF * Math.random())
-
-
-  //   meshes.push(mesh)
-  // }
-
-  // groundNormal.lerp(VECTOR_3, 0.15)
-  // groundNormal.normalize()
-
-  // return meshes
+  return distance
 }
 
 // To prevent deltaT variations

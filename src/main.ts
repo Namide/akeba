@@ -19,7 +19,7 @@ render.resize()
 
 const physic = new Physic()
 
-const { trackMesh, trackMeshes, shipMesh, trackLights, fogMeshes, trackDispose, controlMeshes, homeMeshes, creditsMeshes, outBody } = await createTrack({ physic })
+const { trackMesh, trackBody, trackMeshes, shipMesh, trackLights, fogMeshes, trackDispose, controlMeshes, homeMeshes, creditsMeshes, outBody } = await createTrack({ physic })
 render.scene.add(trackMesh, ...trackMeshes, ...trackLights);
 
 const character3D = await createCharacter({ physic, shipMesh })
@@ -35,9 +35,18 @@ const cameraPosition = createCameraPosition(render, character3D.characterBaseMes
 
 const physicListener = createPhysicListener([
   {
-    eventName: 'added', main: character3D.characterBody, other: [outBody], callback: () => {
+    eventName: 'added',
+    main: character3D.characterBody,
+    other: [outBody],
+    callback: () => {
       characterControls.restart()
     }
+  },
+  {
+    eventName: 'persist',
+    main: character3D.characterBody,
+    other: [trackBody],
+    callback: characterControls.updateNormal
   }
 ])
 

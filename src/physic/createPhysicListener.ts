@@ -13,7 +13,6 @@ export function createPhysicListener(list: {
       })
     },
     onContactPersisted: (bodyA, bodyB, manifold, settings) => {
-      console.log(bodyA.index, bodyB.index, manifold.worldSpaceNormal)
       dispatch(list.filter(({ eventName }) => eventName === 'persist'), {
         bodyA, bodyB, manifold, settings
       })
