@@ -34,7 +34,6 @@ export async function createTrack({ physic }: { physic: Physic }) {
 
   // Tunel lights
   for (const light of trackLights) {
-    console.log(light.intensity)
     light.intensity /= 1360
   }
 

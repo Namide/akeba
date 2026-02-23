@@ -85,7 +85,6 @@ export class MenuEventsManager {
 
   private onClick() {
     const hit = this.#getHit()
-    console.log('CLICK', hit)
     if (hit) {
       for (const event of this.eventList.filter(event => event.eventName === 'click')) {
         if (event.meshName === hit.object.name) {

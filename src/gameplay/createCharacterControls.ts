@@ -37,7 +37,6 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
   return {
 
     updateNormal(_a: RigidBody, _b: RigidBody, manifold: ContactManifold) {
-      console.log(manifold.worldSpaceNormal)
       groundNormal.set(...manifold.worldSpaceNormal)
     },
 
