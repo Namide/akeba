@@ -33,11 +33,15 @@ const cameraPosition = createCameraPosition(render, character3D.characterBaseMes
 
 
 
-const physicListener = createPhysicListener(character3D.characterBody, [outBody], {
-  onOut: () => {
-    characterControls.restart()
+const physicListener = createPhysicListener([
+  {
+    eventName: 'added', main: character3D.characterBody, other: [outBody], callback: () => {
+      characterControls.restart()
+    }
   }
-})
+])
+
+
 
 const startTime = Date.now()
 const { dispose: disposeTick } = attachTick(({ deltaS }) => {
