@@ -20,7 +20,7 @@ render.resize()
 
 const physic = new Physic()
 
-const { trackMesh, trackBody, trackMeshes, shipMesh, trackLights, fogMeshes, controlMeshes, homeMeshes, creditsMeshes, outBody } = await createTrack({ physic })
+const { trackMesh, trackBody, trackMeshes, shipMesh, trackLights, fogMeshes, controlMeshes, homeMeshes, pauseMeshes, creditsMeshes, outBody } = await createTrack({ physic })
 render.scene.add(trackMesh, ...trackMeshes, ...trackLights);
 
 const character3D = await createCharacter({ physic, shipMesh })
@@ -31,7 +31,6 @@ render.scene.add(character3D.characterBaseMesh);
 const characterControls = createCharacterControls({ ...character3D, physic, render, trackMesh })
 
 const cameraPosition = createCameraPosition(render, character3D.characterBaseMesh)
-
 
 
 const physicListener = createPhysicListener([
@@ -80,18 +79,18 @@ attachTick(({ deltaS }) => {
 
 // Screens
 
-
 const gotToHome = () => changeScreen('home')
 const gotToControls = () => changeScreen('controls')
 const gotToCredits = () => changeScreen('credits')
 const gotPlay = () => changeScreen('play')
+const gotRestart = () => changeScreen('restart')
 
 const setHover = (obj: Object3D) => (obj as Mesh<BufferGeometry, MeshLambertMaterial>).material.color.set('#ffff00')
 const setOut = (obj: Object3D) => (obj as Mesh<BufferGeometry, MeshLambertMaterial>).material.color.set('#ffffff')
 
 menuEventManager.addEvent('hover', 'button-play', setHover)
 menuEventManager.addEvent('out', 'button-play', setOut)
-menuEventManager.addEvent('click', 'button-play', gotPlay)
+menuEventManager.addEvent('click', 'button-play', gotRestart)
 menuEventManager.addEvent('hover', 'button-controls', setHover)
 menuEventManager.addEvent('out', 'button-controls', setOut)
 menuEventManager.addEvent('click', 'button-controls', gotToControls)
@@ -104,36 +103,59 @@ menuEventManager.addEvent('click', 'button-return', gotToHome)
 menuEventManager.addEvent('hover', 'button-return-2', setHover)
 menuEventManager.addEvent('out', 'button-return-2', setOut)
 menuEventManager.addEvent('click', 'button-return-2', gotToHome)
+menuEventManager.addEvent('hover', 'button-quit', setHover)
+menuEventManager.addEvent('out', 'button-quit', setOut)
+menuEventManager.addEvent('click', 'button-quit', gotToHome)
+menuEventManager.addEvent('hover', 'button-continue', setHover)
+menuEventManager.addEvent('out', 'button-continue', setOut)
+menuEventManager.addEvent('click', 'button-continue', gotPlay)
+menuEventManager.addEvent('hover', 'button-restart', setHover)
+menuEventManager.addEvent('out', 'button-restart', setOut)
+menuEventManager.addEvent('click', 'button-restart', gotRestart)
 
-function changeScreen(screen: 'controls' | 'home' | 'credits' | 'play') {
+let menuData: { tick: () => void, dispose: () => void } | undefined
+function changeScreen(screen: 'controls' | 'home' | 'credits' | 'play' | 'pause' | 'restart') {
   const objectsAdd: Object3D[] = []
   const objectsRemove: Object3D[] = []
 
+  if (menuData) {
+    menuData.dispose()
+  }
+
   switch (screen) {
-    case 'play':
+    case 'restart':
       menuEventManager.disable()
-      objectsRemove.push(controlMeshes, homeMeshes, creditsMeshes)
+      objectsRemove.push(controlMeshes, homeMeshes, creditsMeshes, pauseMeshes)
+      characterControls.restart()
       isPlaying = true
       break
+    case 'play':
+      menuEventManager.disable()
+      objectsRemove.push(controlMeshes, homeMeshes, creditsMeshes, pauseMeshes)
+      isPlaying = true
+      break
+    case 'pause':
+      menuEventManager.enable([pauseMeshes])
+      objectsAdd.push(pauseMeshes)
+      objectsRemove.push(controlMeshes, homeMeshes, creditsMeshes, pauseMeshes)
+      isPlaying = false
+      break
     case 'home':
-      menuEventManager.enable()
-      menuEventManager.objects3D = [homeMeshes]
+      menuEventManager.enable([homeMeshes])
       objectsAdd.push(homeMeshes)
-      objectsRemove.push(controlMeshes, creditsMeshes)
+      objectsRemove.push(controlMeshes, creditsMeshes, pauseMeshes)
       isPlaying = false
       break
     case 'credits':
-      menuEventManager.enable()
-      menuEventManager.objects3D = [creditsMeshes]
+      menuEventManager.enable([creditsMeshes])
       objectsAdd.push(creditsMeshes)
-      objectsRemove.push(controlMeshes, homeMeshes)
+      objectsRemove.push(controlMeshes, homeMeshes, pauseMeshes)
       isPlaying = false
       break
     case 'controls':
-      menuEventManager.enable()
-      menuEventManager.objects3D = [controlMeshes]
+      menuEventManager.enable([controlMeshes])
       objectsAdd.push(controlMeshes)
-      objectsRemove.push(homeMeshes, creditsMeshes)
+      objectsRemove.push(homeMeshes, creditsMeshes, pauseMeshes)
       isPlaying = false
       break
   }
@@ -169,11 +191,3 @@ function changeScreen(screen: 'controls' | 'home' | 'credits' | 'play') {
 }
 
 changeScreen('home')
-
-
-// return {
-//   dispose() {
-//     disposeTick()
-//     trackDispose()
-//   }
-// }

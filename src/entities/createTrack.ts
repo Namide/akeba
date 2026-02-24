@@ -11,7 +11,7 @@ export async function createTrack({ physic }: { physic: Physic }) {
   const disposeCallbacks: (() => any)[] = []
 
   // Track
-  const { trackMesh, trackMeshes, shipMesh, trackLights, controlMeshes, homeMeshes, creditsMeshes, outMesh } = await loadTrack()
+  const { trackMesh, trackMeshes, shipMesh, trackLights, controlMeshes, homeMeshes, pauseMeshes, creditsMeshes, outMesh } = await loadTrack()
 
   const { body: trackBody, dispose: trackDispose } = createPhysic({ physic, mesh: trackMesh })
   disposeCallbacks.push(trackDispose)
@@ -26,6 +26,7 @@ export async function createTrack({ physic }: { physic: Physic }) {
   cleanMenu(controlMeshes)
   cleanMenu(homeMeshes)
   cleanMenu(creditsMeshes)
+  cleanMenu(pauseMeshes)
 
   for (const mesh of trackMeshes.filter(m => m.name.indexOf('physic') > -1)) {
     const data = createPhysic({ physic, mesh })
@@ -91,6 +92,7 @@ export async function createTrack({ physic }: { physic: Physic }) {
     controlMeshes,
     homeMeshes,
     creditsMeshes,
+    pauseMeshes,
 
     trackDispose: () => {
       for (const cb of disposeCallbacks) {

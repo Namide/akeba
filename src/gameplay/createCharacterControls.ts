@@ -63,7 +63,7 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
 
       const groundDistance = getGroundDistance(characterBody, trackMesh)
 
-      const turn = (inputs.brake ? getAlphaLerp(BRAKE_TURN_ABILITY, deltaS) : getAlphaLerp(TURN_ABILITY, deltaS))
+      const turn = (inputs.cancel ? getAlphaLerp(BRAKE_TURN_ABILITY, deltaS) : getAlphaLerp(TURN_ABILITY, deltaS))
 
       if (inputs.left) {
         const perpendicular = new Vector3()
@@ -76,7 +76,7 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
       }
 
       let nextSpeed = physicVelocity.length()
-      if (inputs.forward) {
+      if (inputs.action || inputs.forward) {
         nextSpeed = MAX_VELOCITY
 
         const scale = lightRightSprite.scale.x + (LIGHT_SCALE_MAX - lightRightSprite.scale.x) * getAlphaLerp(0.999, deltaS)
@@ -98,7 +98,7 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
 
       const force = new Vector3()
         .subVectors(thrust, physicVelocity)
-        .multiplyScalar(inputs.brake ? BRAKE_REACTIVITY : REACTIVITY)
+        .multiplyScalar(inputs.cancel ? BRAKE_REACTIVITY : REACTIVITY)
 
 
       if (physicVelocity.y > 0 && groundDistance > 1) {
@@ -119,7 +119,7 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
         characterBaseMesh.position.clone().add(oldCameraLookAt)
           .lerp(
             characterBaseMesh.position.clone().add(perpendicularDirectionCamera),
-            inputs.brake ? getAlphaLerp(0.9999, deltaS) : getAlphaLerp(0.999999, deltaS)
+            inputs.cancel ? getAlphaLerp(0.9999, deltaS) : getAlphaLerp(0.999999, deltaS)
           )
       );
 

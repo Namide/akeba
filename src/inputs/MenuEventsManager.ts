@@ -1,96 +1,107 @@
-import { Object3D, PerspectiveCamera, Raycaster, Vector2 } from "three";
+import { Object3D, PerspectiveCamera } from "three";
+import { MenuEvent, MenuMouseManager } from "./MenuMouseManager";
+import { attachControls } from "./attachControls"
 
-type MenuEvent = {
-  meshName: string,
-  eventName: 'click' | 'hover' | 'out',
-  callback: (mesh: Object3D) => void
-}
+export class MenuEventsManager extends MenuMouseManager {
 
-export class MenuEventsManager {
+  #controlsData: ReturnType<typeof attachControls> | undefined
 
-  camera
-  eventList: MenuEvent[] = []
-  pointer = new Vector2()
-  raycaster = new Raycaster();
-  objects3D: Object3D[] = []
-  hoverObject: Object3D | undefined
+  #currentClickableObjects: { mesh: Object3D, event: MenuEvent }[] = []
+  #currentSelected: Object3D | undefined
+
+  #on
 
   constructor(camera: PerspectiveCamera) {
-    this.camera = camera
-    this.onMove = this.onMove.bind(this)
-    this.onClick = this.onClick.bind(this)
+    super(camera)
+
+    this.#on = {
+      action: () => { this.#action() },
+      left: () => { this.#prev() },
+      right: () => { this.#next() },
+      cancel: () => { this.#cancel() },
+      backward: () => { this.#next() },
+      forward: () => { this.#prev() },
+      select: () => { this.#next() },
+      start: () => { this.#action() },
+    }
+  }
+  #prev() {
+    this.#out(this.#currentSelected)
+
+    const index = !this.#currentSelected ? this.#currentClickableObjects.length - 1 : ((this.#currentClickableObjects.findIndex(o => o.mesh === this.#currentSelected) + this.#currentClickableObjects.length - 1) % this.#currentClickableObjects.length)
+    this.#currentSelected = this.#currentClickableObjects[index].mesh
+
+    this.#hover(this.#currentSelected)
   }
 
-  addEvent(
-    eventName: MenuEvent['eventName'],
-    meshName: string,
-    callback: MenuEvent['callback']
-  ) {
-    this.eventList.push({ eventName, meshName, callback })
+  #next() {
+    this.#out(this.#currentSelected)
+
+    const index = !this.#currentSelected ? 0 : ((this.#currentClickableObjects.findIndex(o => o.mesh === this.#currentSelected) + 1) % this.#currentClickableObjects.length)
+    this.#currentSelected = this.#currentClickableObjects[index].mesh
+
+    this.#hover(this.#currentSelected)
   }
 
-  disable() {
-    document.removeEventListener('mousemove', this.onMove);
-    document.removeEventListener('click', this.onClick);
+  #action() {
+    if (!this.#currentSelected) {
+      return
+    }
+
+    this.eventList.find(event => event.eventName === 'click' && event.meshName === this.#currentSelected!.name)?.callback(this.#currentSelected)
   }
 
-  enable() {
-    this.disable()
-    document.addEventListener('mousemove', this.onMove);
-    document.addEventListener('click', this.onClick);
+  #cancel() {
+
   }
 
-  #getHit() {
-    this.raycaster.setFromCamera(this.pointer, this.camera);
-    const intersects = this.raycaster.intersectObjects(this.objects3D, true);
-    return intersects[0]
+  #out(object3D?: Object3D) {
+    if (!object3D) {
+      return
+    }
+    const outEvent = this.eventList.find(outEvent => outEvent.eventName === 'out' && outEvent.meshName === object3D.name)
+    outEvent?.callback(object3D)
+  }
+
+  #hover(object3D?: Object3D) {
+    if (!object3D) {
+      return
+    }
+    const hoverEvent = this.eventList.find(hoverEvent => hoverEvent.eventName === 'hover' && hoverEvent.meshName === object3D.name)
+    hoverEvent?.callback(object3D)
+  }
+
+  disable(): void {
+    super.disable()
+    if (this.#controlsData) {
+      this.#controlsData.dispose()
+      this.#controlsData = undefined
+    }
+    this.#currentSelected = undefined
+  }
+
+  enable(objects3D: Object3D[]) {
+    super.enable(objects3D)
+    this.#controlsData = attachControls(this.#on)
+
+    this.#currentClickableObjects = []
+    for (const group of objects3D) {
+      group.traverse(mesh => {
+        const event = this.eventList.find(event => event.meshName === mesh.name)
+        if (event) {
+          this.#currentClickableObjects.push({
+            event,
+            mesh
+          })
+        }
+      })
+    }
   }
 
   tick() {
-    const lastHover = this.hoverObject
-
-    let newHover: { object3D: Object3D, callback: MenuEvent['callback'] } | undefined
-
-    const hit = this.#getHit()
-    if (hit) {
-      for (const event of this.eventList.filter(event => event.eventName === 'hover')) {
-        if (event.meshName === hit.object.name) {
-          newHover = { object3D: hit.object, callback: event.callback }
-        }
-      }
-    }
-
-    if (newHover && newHover.object3D !== lastHover) {
-      newHover.callback(newHover.object3D)
-    }
-
-    this.hoverObject = newHover?.object3D
-
-    if (lastHover && lastHover !== newHover?.object3D) {
-
-      // (this.hoverObject as Mesh<BufferGeometry, MeshLambertMaterial>).material.color.set('#ffffff')
-
-      this.eventList.find(
-        event => event.eventName === 'out' && event.meshName === lastHover.name
-      )?.callback(lastHover)
-
-      // this.hoverObject = undefined
-    }
-  }
-
-  private onMove(event: MouseEvent) {
-    this.pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
-    this.pointer.y = - (event.clientY / window.innerHeight) * 2 + 1;
-  }
-
-  private onClick() {
-    const hit = this.#getHit()
-    if (hit) {
-      for (const event of this.eventList.filter(event => event.eventName === 'click')) {
-        if (event.meshName === hit.object.name) {
-          event.callback(hit.object)
-        }
-      }
+    super.tick()
+    if (this.#controlsData) {
+      this.#controlsData.tick()
     }
   }
 }

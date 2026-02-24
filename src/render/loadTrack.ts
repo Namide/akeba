@@ -30,6 +30,9 @@ export async function loadTrack() {
   const homeMeshes = new Group()
   homeMeshes.add(...groups.children.find(group => group.name === 'home-screen')!.children)
 
+  const pauseMeshes = new Group()
+  pauseMeshes.add(...groups.children.find(group => group.name === 'pause-screen')!.children)
+
   const creditsMeshes = new Group()
   creditsMeshes.add(...groups.children.find(group => group.name === 'credits-screen')!.children)
 
@@ -45,5 +48,5 @@ export async function loadTrack() {
   const outMesh = trackMeshes.find(mesh => mesh.name === 'out-hidden') as Mesh
   trackMeshes.splice(trackMeshes.indexOf(outMesh), 1)
 
-  return { trackMesh, trackMeshes, shipMesh, trackLights, controlMeshes, homeMeshes, creditsMeshes, outMesh }
+  return { trackMesh, trackMeshes, shipMesh, trackLights, controlMeshes, homeMeshes, pauseMeshes, creditsMeshes, outMesh }
 }

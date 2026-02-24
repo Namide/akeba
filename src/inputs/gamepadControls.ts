@@ -1,13 +1,17 @@
 import type { Inputs } from "./inputs";
 
 const PADS = [
-  // [12, 'forward'],
-  // [13, 'backward'],
+  // Gameplay
   [14, 'left'],
   [15, 'right'],
+  [0, 'action'],
+  [2, 'cancel'],
 
-  [0, 'forward'],
-  [2, 'brake'],
+  // Menu
+  [12, 'forward'],
+  [13, 'backward'],
+  [8, 'select'],
+  [9, 'start'],
 ] as const
 
 export function createGamepadInputs(inputs: Inputs) {
