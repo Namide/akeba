@@ -17,11 +17,7 @@ export function createPhysicListener(list: {
         bodyA, bodyB, manifold, settings
       })
     },
-    onContactRemoved: (/* bodyIdA, bodyIdB, subShapeIdA, subShapeIdB */) => {
-      // dispatch(list.filter(({ eventName }) => eventName === 'persist'), {
-      //   bodyA, bodyB, manifold, settings
-      // })
-    },
+    onContactRemoved: (/* bodyIdA, bodyIdB, subShapeIdA, subShapeIdB */) => { },
   }
 }
 

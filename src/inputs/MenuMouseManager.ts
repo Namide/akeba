@@ -8,12 +8,13 @@ export type MenuEvent = {
 
 export class MenuMouseManager {
 
-  #camera
   protected eventList: MenuEvent[] = []
+  protected objects3D: Object3D[] = []
+
+  #hoverObject: Object3D | undefined
+  #camera
   #pointer = new Vector2()
   #raycaster = new Raycaster();
-  protected objects3D: Object3D[] = []
-  #hoverObject: Object3D | undefined
 
   constructor(camera: PerspectiveCamera) {
     this.#camera = camera
@@ -69,14 +70,9 @@ export class MenuMouseManager {
     this.#hoverObject = newHover?.object3D
 
     if (lastHover && lastHover !== newHover?.object3D) {
-
-      // (this.hoverObject as Mesh<BufferGeometry, MeshLambertMaterial>).material.color.set('#ffffff')
-
       this.eventList.find(
         event => event.eventName === 'out' && event.meshName === lastHover.name
       )?.callback(lastHover)
-
-      // this.hoverObject = undefined
     }
   }
 

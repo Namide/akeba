@@ -10,7 +10,6 @@ import { retroizeMaterial } from "../render/retroize"
 export async function createTrack({ physic }: { physic: Physic }) {
   const disposeCallbacks: (() => any)[] = []
 
-  // Track
   const { trackMesh, trackMeshes, shipMesh, trackLights, controlMeshes, homeMeshes, pauseMeshes, creditsMeshes, outMesh } = await loadTrack()
 
   const { body: trackBody, dispose: trackDispose } = createPhysic({ physic, mesh: trackMesh })
@@ -55,28 +54,24 @@ export async function createTrack({ physic }: { physic: Physic }) {
   // Clouds
   for (const mesh of trackMeshes.filter(mesh => mesh.name.indexOf('cloud') > -1)) {
     mesh.material = new MeshBasicMaterial({
-      map: (mesh.material as MeshLambertMaterial).map
+      alphaMap: (mesh.material as MeshLambertMaterial).map
     })
     retroizeMaterial(mesh.material as MeshLambertMaterial);
 
     (mesh.material as MeshLambertMaterial).blending = AdditiveBlending;
     (mesh.material as MeshLambertMaterial).depthWrite = false
-
-    mesh.visible = false // Fix fog + additive error
   }
 
   const fogMeshes = trackMeshes.filter(mesh => mesh.name.indexOf('fog') > -1)
   for (const mesh of fogMeshes) {
     mesh.material = new MeshBasicMaterial({
-      map: (mesh.material as MeshLambertMaterial).emissiveMap,
+      alphaMap: (mesh.material as MeshLambertMaterial).emissiveMap,
     })
     retroizeMaterial(mesh.material as MeshLambertMaterial);
 
     (mesh.material as MeshLambertMaterial).blending = AdditiveBlending;
     (mesh.material as MeshLambertMaterial).depthWrite = false;
     mesh.userData = { velocity: Math.random() * 0.3 + 0.3 }
-
-    mesh.visible = false // Fix fog + additive error
   }
 
   return {

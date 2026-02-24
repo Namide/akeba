@@ -66,7 +66,6 @@ export async function createCharacter({ physic, shipMesh }: { physic: Physic, sh
   }));
   retroizeMaterial(characterBodyMesh.material)
 
-
   const characterBaseGeometry = new BoxGeometry(characterRadius * 1.9, characterRadius * 1.9, characterRadius * 1.9)
   const characterBaseMesh = new Mesh(characterBaseGeometry, new MeshLambertMaterial({
     wireframe: true,

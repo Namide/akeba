@@ -5,10 +5,8 @@ import { attachControls } from "./attachControls"
 export class MenuEventsManager extends MenuMouseManager {
 
   #controlsData: ReturnType<typeof attachControls> | undefined
-
   #currentClickableObjects: { mesh: Object3D, event: MenuEvent }[] = []
   #currentSelected: Object3D | undefined
-
   #on
 
   constructor(camera: PerspectiveCamera) {
@@ -25,6 +23,7 @@ export class MenuEventsManager extends MenuMouseManager {
       start: () => { this.#action() },
     }
   }
+
   #prev() {
     this.#out(this.#currentSelected)
 
@@ -53,9 +52,7 @@ export class MenuEventsManager extends MenuMouseManager {
     this.eventList.find(event => event.eventName === 'click' && event.meshName === this.#currentSelected!.name)?.callback(this.#currentSelected)
   }
 
-  #cancel() {
-
-  }
+  #cancel() { }
 
   #out(object3D?: Object3D) {
     if (!object3D) {
@@ -98,6 +95,7 @@ export class MenuEventsManager extends MenuMouseManager {
         }
       })
     }
+
     this.#currentClickableObjects.sort((a, b) =>
       this.eventList.findIndex((aEvent) => aEvent.meshName === a.mesh.name) -
       this.eventList.findIndex((bEvent) => bEvent.meshName === b.mesh.name)

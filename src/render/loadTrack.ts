@@ -1,9 +1,4 @@
-import {
-  Group,
-  Light,
-  LoadingManager,
-  Mesh,
-} from 'three';
+import { Group, Light, LoadingManager, Mesh } from 'three';
 import { DRACOLoader, GLTFLoader } from 'three/examples/jsm/Addons.js';
 import modelsPath from '../assets/track-01.glb?url';
 

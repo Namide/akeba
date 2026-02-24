@@ -27,7 +27,7 @@ export class Render {
       canvas,
       powerPreference: 'high-performance',
       antialias: false,
-      alpha: true,
+      alpha: false,
       precision: 'highp',
     });
     this.renderer.setPixelRatio(this.pixelRatio);
@@ -35,8 +35,9 @@ export class Render {
     this.renderer.shadowMap.type = PCFShadowMap;
 
     this.scene = new Scene();
-    this.scene.fog = new Fog('#8e8ac0', 10, 1500);
+    this.scene.fog = new Fog('#8e8ac0', 1, 1000);
 
+    // ===== 📹 CAMERA =====
     this.camera = new PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 1, 6000);
     this.camera.position.set(0, 3, 8);
 

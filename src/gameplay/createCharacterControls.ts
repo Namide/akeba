@@ -140,6 +140,7 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
           )
       );
 
+
       // Ball
       characterBodyMesh.position.set(...characterBody.position);
       characterBodyMesh.quaternion.set(...characterBody.quaternion);
