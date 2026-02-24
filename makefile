@@ -23,7 +23,7 @@ install:
 		-w /usr/src/app \
 		-u "node" \
 		node \
-		npm run i
+		npm i
 
 code:
 	@docker run -ti --rm \

@@ -32,7 +32,13 @@ export function createKeyboardInputs(inputs: Inputs) {
         inputs.right = true;
         break;
       case 'Space':
-        inputs.brake = true;
+        inputs.cancel = true;
+        break;
+      case 'Enter':
+        inputs.start = true;
+        break;
+      case 'Escape':
+        inputs.select = true;
         break;
     }
   }
@@ -41,7 +47,7 @@ export function createKeyboardInputs(inputs: Inputs) {
     switch (event.code) {
       case 'KeyW':
       case 'ArrowUp':
-        inputs.forward = false;
+        inputs.action = false;
         break;
       case 'KeyS':
       case 'ArrowDown':
@@ -56,7 +62,13 @@ export function createKeyboardInputs(inputs: Inputs) {
         inputs.right = false;
         break;
       case 'Space':
-        inputs.brake = false;
+        inputs.cancel = false;
+        break;
+      case 'Enter':
+        inputs.start = false;
+        break;
+      case 'Escape':
+        inputs.select = false;
         break;
     }
   }
