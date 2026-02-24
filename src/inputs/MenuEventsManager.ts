@@ -48,6 +48,8 @@ export class MenuEventsManager extends MenuMouseManager {
       return
     }
 
+    this.#out(this.#currentSelected)
+
     this.eventList.find(event => event.eventName === 'click' && event.meshName === this.#currentSelected!.name)?.callback(this.#currentSelected)
   }
 
@@ -96,6 +98,10 @@ export class MenuEventsManager extends MenuMouseManager {
         }
       })
     }
+    this.#currentClickableObjects.sort((a, b) =>
+      this.eventList.findIndex((aEvent) => aEvent.meshName === a.mesh.name) -
+      this.eventList.findIndex((bEvent) => bEvent.meshName === b.mesh.name)
+    )
   }
 
   tick() {
