@@ -1,4 +1,3 @@
-
 const element = document.body.querySelector('.output')!
 
 export function log(...messages: string[]) {
