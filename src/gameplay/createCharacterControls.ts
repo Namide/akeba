@@ -2,7 +2,6 @@ import { Mesh, Raycaster, Vector3 } from "three";
 import { ContactManifold, RigidBody, rigidBody, sphere } from "crashcat";
 import { createKeyboardInputs } from "../inputs/keyboardControls";
 import { createCharacter } from "../entities/createCharacter";
-import { log } from "../helpers/log";
 import { Physic } from "../physic/Physic";
 import { createInputs } from "../inputs/inputs";
 import { createGamepadInputs } from "../inputs/gamepadControls";
