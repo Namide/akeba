@@ -17,7 +17,6 @@ const BRAKE_TURN_ABILITY = 0.95
 const REACTIVITY = 0.5
 const BRAKE_REACTIVITY = 0.99
 const FLY_HEIGHT = 0.5
-
 const UP = new Vector3(0, 1, 0)
 
 export function createCharacterControls({ characterBody, characterBodyMesh, characterMesh, characterBaseMesh, lightLeftSprite, lightRightSprite, physic, trackMesh }: Awaited<ReturnType<typeof createCharacter>> & { physic: Physic, render: Render, trackMesh: Mesh }) {
@@ -35,6 +34,8 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
   const INIT_QUATERNION = [...characterBody.quaternion] as [number, number, number, number]
 
   return {
+
+    inputs,
 
     updateNormal(_a: RigidBody, _b: RigidBody, manifold: ContactManifold) {
       groundNormal.set(...manifold.worldSpaceNormal)
@@ -55,12 +56,7 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
     tick: ({ deltaS }: { deltaS: number }) => {
 
       tickGamepad()
-
-      updatePhysicDirection(physicVelocity, characterBody)
-
-      // Update ground normal
-      // const groundDistance = updateGroundNormal(groundNormal, characterBody, trackMesh, deltaS)
-
+      physicVelocity.set(...rigidBody.getVelocityAtPoint([0, 0, 0], characterBody, characterBody.position))
       const groundDistance = getGroundDistance(characterBody, trackMesh)
 
       const turn = (inputs.cancel ? getAlphaLerp(BRAKE_TURN_ABILITY, deltaS) : getAlphaLerp(TURN_ABILITY, deltaS))
@@ -110,6 +106,7 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
       }
       rigidBody.addImpulse(physic.world, characterBody, force.toArray())
 
+
       // Square
       const oldCameraLookAt = characterBaseMesh.getWorldDirection(new Vector3())
       const perpendicularDirectionCamera = new Vector3()
@@ -123,11 +120,10 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
           )
       );
 
-      const turnDirection = playerDirection.clone().normalize().sub(physicVelocity.clone().normalize())
-
-      const shipNormal = groundNormal.clone().add(turnDirection)
 
       // Ship
+      const turnDirection = playerDirection.clone().normalize().sub(physicVelocity.clone().normalize())
+      const shipNormal = groundNormal.clone().add(turnDirection)
       const perpendicularDirectionVehicle = new Vector3()
         .crossVectors(shipNormal, playerDirection);
       const oldShipLookAt = characterMesh.getWorldDirection(new Vector3())
@@ -148,18 +144,6 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
       // Ball
       characterBodyMesh.position.set(...characterBody.position);
       characterBodyMesh.quaternion.set(...characterBody.quaternion);
-
-      log(
-        // 'physic velocity: ' + JSON.stringify(physicVelocity.toArray().map(n => n.toFixed(2)).join(', ')),
-        // // 'velocity:' + physicVelocity.toFixed(2),
-        // 'ground normal:' + JSON.stringify(groundNormal.toArray().map(n => n.toFixed(2)).join(', ')),
-        // 'player direction:' + JSON.stringify(playerDirection.toArray().map(n => n.toFixed(2)).join(', ')),
-        // 'player velocity:' + JSON.stringify(thrust.toArray().map(n => n.toFixed(2)).join(', ')),
-        // 'force:' + JSON.stringify(force.toArray().map(n => n.toFixed(2)).join(', ')),
-        // 'lookAt:' + JSON.stringify(characterMesh.getWorldDirection(new Vector3()).toArray().map(n => n.toFixed(2)).join(', ')),
-        // 'lookAt:' + JSON.stringify(characterMesh.getWorldDirection(new Vector3()).toArray().map(n => n.toFixed(2)).join(', ')),
-        'turnDirection: ' + JSON.stringify(turnDirection.toArray().map(n => n.toFixed(2)).join(', '))
-      )
     },
 
     dispose: () => {
@@ -189,9 +173,4 @@ function getGroundDistance(characterBody: Parameters<typeof createCharacterContr
 // To prevent deltaT variations
 function getAlphaLerp(lerpFactorPerSecond: number, deltaS: number) {
   return 1 - Math.pow(1 - lerpFactorPerSecond, deltaS);
-}
-
-function updatePhysicDirection(physicVelocity: Vector3, characterBody: Parameters<typeof createCharacterControls>[0]['characterBody']) {
-  const [x, y, z] = rigidBody.getVelocityAtPoint([0, 0, 0], characterBody, characterBody.position) // characterBody.linearVelocity
-  physicVelocity.set(x, y, z)
 }

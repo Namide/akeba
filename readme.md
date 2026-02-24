@@ -1,11 +1,10 @@
-## Todo
+# Akeba
 
+Tiny spaceship racing demo with PS-style created for the [Three.js Journey Challenge #022]()
 
-#FFB750
-#FF191E
+![](./public/cover.jpg)
 
+Theme: Spaceship  
+Dates: from February 1 to February 28 2026 
 
-
-#454545
-#FFD22E
-#E0007F
+Try it on [akeba.namide.com](https://akeba.namide.com/)

@@ -61,6 +61,10 @@ attachTick(({ deltaS }) => {
     if (cameraPosition.gameTick) {
       cameraPosition.gameTick()
     }
+
+    if (characterControls.inputs.select) {
+      changeScreen('pause')
+    }
   } else {
     menuEventManager.tick()
   }
@@ -174,16 +178,16 @@ function changeScreen(screen: 'controls' | 'home' | 'credits' | 'play' | 'pause'
     render.camera.position.copy(camera.position)
     render.camera.quaternion.copy(camera.quaternion)
     render.camera.updateProjectionMatrix();
+  }
 
-    for (const object3D of objectsAdd) {
-      const pos = render.camera.getWorldPosition(new Vector3())
-      pos.add(
-        render.camera.getWorldDirection(new Vector3()).multiplyScalar(3)
-      )
+  for (const object3D of objectsAdd) {
+    const pos = render.camera.getWorldPosition(new Vector3())
+    pos.add(
+      render.camera.getWorldDirection(new Vector3()).multiplyScalar(3)
+    )
 
-      object3D.position.copy(pos)
-      object3D.quaternion.copy(render.camera.quaternion)
-    }
+    object3D.position.copy(pos)
+    object3D.quaternion.copy(render.camera.quaternion)
   }
 
   render.scene.remove(...objectsRemove)
