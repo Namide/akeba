@@ -47,7 +47,7 @@ export function createKeyboardInputs(inputs: Inputs) {
     switch (event.code) {
       case 'KeyW':
       case 'ArrowUp':
-        inputs.action = false;
+        inputs.forward = false;
         break;
       case 'KeyS':
       case 'ArrowDown':

@@ -191,7 +191,10 @@ function changeScreen(screen: 'controls' | 'home' | 'credits' | 'play' | 'pause'
   }
 
   render.scene.remove(...objectsRemove)
-  render.scene.add(...objectsAdd)
+
+  if (objectsAdd.length > 0) {
+    render.scene.add(...objectsAdd)
+  }
 }
 
 changeScreen('home')
