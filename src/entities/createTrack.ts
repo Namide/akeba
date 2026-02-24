@@ -155,6 +155,6 @@ function createPhysic({ physic, mesh }: { physic: Physic, mesh: Mesh }) {
 
   return {
     body,
-    dispose: () => mesh.geometry.computeBoundsTree()
+    dispose: () => mesh.geometry.disposeBoundsTree()
   }
 }
