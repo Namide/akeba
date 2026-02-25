@@ -27,6 +27,10 @@ export function createTouchInputs(inputs: Inputs) {
 
   const enable = () => {
     disable()
+    if (!isTouchDevice()) {
+      return
+    }
+
     joystick = nipplejs.create({
       zone: document.body.querySelector('.joystick') as HTMLDivElement,
       mode: 'semi',
@@ -54,4 +58,8 @@ export function createTouchInputs(inputs: Inputs) {
       disable()
     }
   }
+}
+
+function isTouchDevice() {
+  return window.matchMedia("(pointer: coarse)").matches
 }
