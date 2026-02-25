@@ -8,6 +8,7 @@ import { createGamepadInputs } from "../inputs/gamepadControls";
 import { Render } from "../render/Render";
 import { LIGHT_SCALE_MAX, LIGHT_SCALE_MIN } from "../config";
 import { quat, vec3 } from "mathcat";
+import { createTouchInputs } from "../inputs/touchControls";
 
 
 const MAX_VELOCITY = 250
@@ -23,6 +24,7 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
   const inputs = createInputs()
   const { dispose: disposeKeyboard } = createKeyboardInputs(inputs)
   const { tick: tickGamepad } = createGamepadInputs(inputs)
+  const touchControls = createTouchInputs(inputs)
 
   const playerDirection = new Vector3(-1, 0, 0)
   const groundNormal = new Vector3(0, 1, 0)
@@ -36,6 +38,7 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
 
     inputs,
     physicVelocity,
+    touchControls,
 
     updateNormal(_a: RigidBody, _b: RigidBody, manifold: ContactManifold) {
       groundNormal.set(...manifold.worldSpaceNormal)
@@ -56,6 +59,7 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
     tick: ({ deltaS }: { deltaS: number }) => {
 
       tickGamepad()
+      touchControls.tick()
       physicVelocity.set(...rigidBody.getVelocityAtPoint([0, 0, 0], characterBody, characterBody.position))
       const groundDistance = getGroundDistance(characterBody, trackMesh)
 
@@ -149,6 +153,7 @@ export function createCharacterControls({ characterBody, characterBodyMesh, char
 
     dispose: () => {
       disposeKeyboard()
+      touchControls.dispose()
     }
   }
 }

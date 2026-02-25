@@ -135,35 +135,41 @@ function changeScreen(screen: 'controls' | 'home' | 'credits' | 'play' | 'pause'
       menuEventManager.disable()
       objectsRemove.push(controlMeshes, homeMeshes, creditsMeshes, pauseMeshes)
       characterControls.restart()
+      characterControls.touchControls.enable()
       isPlaying = true
       break
     case 'play':
       menuEventManager.disable()
       objectsRemove.push(controlMeshes, homeMeshes, creditsMeshes, pauseMeshes)
+      characterControls.touchControls.enable()
       isPlaying = true
       break
     case 'pause':
       menuEventManager.enable([pauseMeshes])
       objectsAdd.push(pauseMeshes)
       objectsRemove.push(controlMeshes, homeMeshes, creditsMeshes, pauseMeshes)
+      characterControls.touchControls.disable()
       isPlaying = false
       break
     case 'home':
       menuEventManager.enable([homeMeshes])
       objectsAdd.push(homeMeshes)
       objectsRemove.push(controlMeshes, creditsMeshes, pauseMeshes)
+      characterControls.touchControls.disable()
       isPlaying = false
       break
     case 'credits':
       menuEventManager.enable([creditsMeshes])
       objectsAdd.push(creditsMeshes)
       objectsRemove.push(controlMeshes, homeMeshes, pauseMeshes)
+      characterControls.touchControls.disable()
       isPlaying = false
       break
     case 'controls':
       menuEventManager.enable([controlMeshes])
       objectsAdd.push(controlMeshes)
       objectsRemove.push(homeMeshes, creditsMeshes, pauseMeshes)
+      characterControls.touchControls.disable()
       isPlaying = false
       break
   }
