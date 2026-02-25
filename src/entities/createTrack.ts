@@ -116,6 +116,7 @@ function cleanMenu(group: Group) {
         mesh.material = new MeshBasicMaterial({
           map: texture,
           transparent: true,
+          depthTest: false
         })
 
         retroizeMaterial(mesh.material as any as MeshLambertMaterial)
