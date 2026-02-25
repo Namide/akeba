@@ -1,4 +1,4 @@
-import { AdditiveBlending, BufferGeometry, Group, Mesh, MeshBasicMaterial, MeshLambertMaterial } from "three"
+import { AdditiveBlending, BufferGeometry, Group, LinearFilter, Mesh, MeshBasicMaterial, MeshLambertMaterial } from "three"
 import { MotionType, rigidBody } from "crashcat"
 import { quat, vec3 } from "mathcat"
 import { BufferGeometryUtils } from "three/examples/jsm/Addons.js"
@@ -119,6 +119,12 @@ function cleanMenu(group: Group) {
         })
 
         retroizeMaterial(mesh.material as any as MeshLambertMaterial)
+
+        // mesh.material.map!.magFilter = LinearFilter
+        mesh.material.map!.minFilter = LinearFilter
+        // texture.anisotropy = 0
+        // texture.magFilter = NearestFilter
+        // texture.minFilter = NearestFilter
       }
     }
   })

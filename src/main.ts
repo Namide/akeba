@@ -2,7 +2,6 @@ import './style.css';
 import './helpers/initThree'
 
 import { updateWorld } from "crashcat";
-import { Render } from "./render/Render";
 import { Physic } from "./physic/Physic";
 import { attachTick } from "./helpers/attachTick";
 import { createCharacter } from "./entities/createCharacter";
@@ -12,11 +11,11 @@ import { createTrack } from "./entities/createTrack";
 import { BufferGeometry, Mesh, MeshLambertMaterial, Object3D, PerspectiveCamera, Vector3 } from 'three';
 import { createPhysicListener } from './physic/createPhysicListener';
 import { MenuEventsManager } from './inputs/MenuEventsManager';
+import { createRenderEngine } from './render/Render';
 
 let isPlaying = true
 
-const render = new Render(document.body.querySelector('canvas')!)
-render.resize()
+const render = await createRenderEngine(document.body.querySelector('canvas')!)
 
 const physic = new Physic()
 
@@ -53,6 +52,7 @@ const physicListener = createPhysicListener([
 const menuEventManager = new MenuEventsManager(render.camera)
 
 const startTime = Date.now()
+let i = 0
 attachTick(({ deltaS }) => {
   if (isPlaying) {
     updateWorld(physic.world, physicListener, deltaS);
@@ -77,7 +77,11 @@ attachTick(({ deltaS }) => {
     fog.rotation.y = fog.userData.velocity * (Date.now() - startTime) / 20000
   }
 
-  render.render()
+  render.hud.counter.update(Date.now() - startTime)
+  if (++i % 15 === 0) {
+    render.hud.velocity.update(characterControls.physicVelocity.length() * Math.PI)
+  }
+  render.render({ withHud: isPlaying })
 })
 
 

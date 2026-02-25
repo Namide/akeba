@@ -11,16 +11,15 @@ export function resizeRendererToDisplaySize(renderer: WebGLRenderer) {
   const height = container.clientHeight;
   const needResize = previousWidth !== width || previousHeight !== height;
 
-  const HEIGHT = RESOLUTION_HEIGHT
-
   if (needResize) {
     canvas.style.width = `${width}px`;
     canvas.style.height = `${height}px`;
     renderer.setSize(width, height, true);
-    renderer.setSize(Math.round(HEIGHT * width / height), Math.round(HEIGHT), false);
+    renderer.setSize(Math.round(RESOLUTION_HEIGHT * width / height), Math.round(RESOLUTION_HEIGHT), false);
 
     previousWidth = width;
     previousHeight = height;
   }
+
   return needResize;
 }
