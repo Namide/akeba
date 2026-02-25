@@ -64,7 +64,7 @@ export async function createHud() {
       // );
     },
 
-    drawTimes(laps: number[]) {
+    drawTimes(/* laps: number[] */) {
 
     }
   }

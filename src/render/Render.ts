@@ -81,6 +81,7 @@ export async function createRenderEngine(canvas: HTMLCanvasElement) {
     scene,
     camera,
     hud,
+    renderer,
 
     render({ withHud }: { withHud: boolean }) {
       renderer.clear();
