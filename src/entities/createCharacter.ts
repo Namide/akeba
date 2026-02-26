@@ -10,7 +10,7 @@ import {
 } from 'three';
 import { quat, vec3 } from 'mathcat';
 import { MotionQuality, MotionType, rigidBody, sphere } from 'crashcat';
-import { OBJECT_LAYER_MOVING, Physic } from '../physic/Physic';
+import { OBJECT_LAYER_MOVING, Physic, PHYSIC_GROUP } from '../physic/Physic';
 import imgLightSrc from '../assets/rear-light.webp'
 import { retroizeMaterial, retroizeTexture } from '../render/retroize';
 import { DEBUG, LIGHT_SCALE_MIN } from '../config';
@@ -34,7 +34,10 @@ export async function createCharacter({ physic, shipMesh }: { physic: Physic, sh
 
     restitution: 0,
     friction: 0.5,
-    mass: 50
+    mass: 50,
+
+    collisionGroups: PHYSIC_GROUP.player,
+    collisionMask: PHYSIC_GROUP.ground | PHYSIC_GROUP.item
   });
 
 

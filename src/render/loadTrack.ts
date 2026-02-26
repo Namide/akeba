@@ -43,5 +43,10 @@ export async function loadTrack() {
   const outMesh = trackMeshes.find(mesh => mesh.name === 'out-hidden') as Mesh
   trackMeshes.splice(trackMeshes.indexOf(outMesh), 1)
 
-  return { trackMesh, trackMeshes, shipMesh, trackLights, controlMeshes, homeMeshes, pauseMeshes, creditsMeshes, outMesh }
+  const checkpointMeshes = trackMeshes.filter(mesh => mesh.name.indexOf('checkpoint') > -1) as Mesh[]
+  for (let i = 0; i < checkpointMeshes.length; i++) {
+    trackMeshes.splice(trackMeshes.indexOf(checkpointMeshes[i]), 1)
+  }
+
+  return { trackMesh, trackMeshes, shipMesh, trackLights, controlMeshes, homeMeshes, pauseMeshes, creditsMeshes, outMesh, checkpointMeshes }
 }

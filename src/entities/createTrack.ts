@@ -1,22 +1,44 @@
 import { AdditiveBlending, BufferGeometry, Group, LinearFilter, Mesh, MeshBasicMaterial, MeshLambertMaterial } from "three"
-import { MotionType, rigidBody } from "crashcat"
+import { MotionType, RigidBody, rigidBody } from "crashcat"
 import { quat, vec3 } from "mathcat"
 import { BufferGeometryUtils } from "three/examples/jsm/Addons.js"
 import { loadTrack } from "../render/loadTrack"
-import { OBJECT_LAYER_NOT_MOVING, Physic } from "../physic/Physic"
+import { OBJECT_LAYER_NOT_MOVING, Physic, PHYSIC_GROUP } from "../physic/Physic"
 import { createTriangleShape } from "../physic/createTriangleShape"
 import { retroizeMaterial } from "../render/retroize"
 
 export async function createTrack({ physic }: { physic: Physic }) {
   const disposeCallbacks: (() => any)[] = []
 
-  const { trackMesh, trackMeshes, shipMesh, trackLights, controlMeshes, homeMeshes, pauseMeshes, creditsMeshes, outMesh } = await loadTrack()
+  const { trackMesh, trackMeshes, shipMesh, trackLights, controlMeshes, homeMeshes, pauseMeshes, creditsMeshes, outMesh, checkpointMeshes } = await loadTrack()
 
-  const { body: trackBody, dispose: trackDispose } = createPhysic({ physic, mesh: trackMesh })
+  const { body: trackBody, dispose: trackDispose } = createPhysic({
+    physic,
+    mesh: trackMesh,
+    collisionGroups: PHYSIC_GROUP.ground,
+    collisionMask: PHYSIC_GROUP.player
+  })
   disposeCallbacks.push(trackDispose)
 
-  const outData = createPhysic({ physic, mesh: outMesh })
+  const outData = createPhysic({
+    physic,
+    mesh: outMesh,
+    collisionGroups: PHYSIC_GROUP.item,
+    collisionMask: PHYSIC_GROUP.player,
+  })
   disposeCallbacks.push(outData.dispose)
+
+  const checkpointBodies: RigidBody[] = []
+  for (const checkpointMesh of checkpointMeshes) {
+    const checkpointsData = createPhysic({
+      physic,
+      mesh: checkpointMesh,
+      collisionGroups: PHYSIC_GROUP.item,
+      collisionMask: PHYSIC_GROUP.player,
+    })
+    disposeCallbacks.push(checkpointsData.dispose)
+    checkpointBodies.push(checkpointsData.body)
+  }
 
   retroizeMaterial(trackMesh.material as MeshLambertMaterial)
   trackMesh.receiveShadow = true;
@@ -28,7 +50,12 @@ export async function createTrack({ physic }: { physic: Physic }) {
   cleanMenu(pauseMeshes)
 
   for (const mesh of trackMeshes.filter(m => m.name.indexOf('physic') > -1)) {
-    const data = createPhysic({ physic, mesh })
+    const data = createPhysic({
+      physic,
+      mesh,
+      collisionGroups: PHYSIC_GROUP.ground,
+      collisionMask: PHYSIC_GROUP.player,
+    })
     disposeCallbacks.push(data.dispose)
   }
 
@@ -88,6 +115,7 @@ export async function createTrack({ physic }: { physic: Physic }) {
     homeMeshes,
     creditsMeshes,
     pauseMeshes,
+    checkpointBodies,
 
     trackDispose: () => {
       for (const cb of disposeCallbacks) {
@@ -131,7 +159,7 @@ function cleanMenu(group: Group) {
   })
 }
 
-function createPhysic({ physic, mesh }: { physic: Physic, mesh: Mesh }) {
+function createPhysic({ physic, mesh, collisionGroups, collisionMask }: { physic: Physic, mesh: Mesh, collisionGroups: number, collisionMask: number }) {
   let trackGeometry = mesh.geometry.clone() as BufferGeometry
 
   // Perf: x10 https://www.npmjs.com/package/three-mesh-bvh
@@ -158,6 +186,11 @@ function createPhysic({ physic, mesh }: { physic: Physic, mesh: Mesh }) {
     friction: 0.5,
 
     enhancedInternalEdgeRemoval: true,
+
+    collisionGroups,
+    collisionMask,
+
+    sensor: collisionGroups === PHYSIC_GROUP.item
   });
 
   return {

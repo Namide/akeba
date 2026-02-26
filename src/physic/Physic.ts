@@ -1,6 +1,8 @@
-import { addBroadphaseLayer, addObjectLayer, createWorld, createWorldSettings, enableCollision, registerAll } from 'crashcat';
+import { addBroadphaseLayer, addObjectLayer, bitmask, createWorld, createWorldSettings, enableCollision, registerAll } from 'crashcat';
 
 registerAll();
+
+export const PHYSIC_GROUP = bitmask.createFlags(['player', 'ground', 'item'] as const);
 
 export const worldSettings = createWorldSettings()
 const BROADPHASE_LAYER_NOT_MOVING = addBroadphaseLayer(worldSettings);

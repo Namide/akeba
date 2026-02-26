@@ -1,7 +1,7 @@
 import './style.css';
 import './helpers/initThree'
 
-import { updateWorld } from "crashcat";
+import { RigidBody, updateWorld } from "crashcat";
 import { Physic } from "./physic/Physic";
 import { attachTick } from "./helpers/attachTick";
 import { createCharacter } from "./entities/createCharacter";
@@ -12,6 +12,7 @@ import { BufferGeometry, Mesh, MeshLambertMaterial, Object3D, PerspectiveCamera,
 import { createPhysicListener } from './physic/createPhysicListener';
 import { MenuEventsManager } from './inputs/MenuEventsManager';
 import { createRenderEngine } from './render/Render';
+import { createLapManager } from './gameplay/createLapManager';
 
 let isPlaying = true
 
@@ -19,7 +20,7 @@ const render = await createRenderEngine(document.body.querySelector('canvas')!)
 
 const physic = new Physic()
 
-const { trackMesh, trackBody, trackMeshes, shipMesh, trackLights, fogMeshes, controlMeshes, homeMeshes, pauseMeshes, creditsMeshes, outBody } = await createTrack({ physic })
+const { trackMesh, trackBody, trackMeshes, shipMesh, trackLights, fogMeshes, controlMeshes, homeMeshes, pauseMeshes, creditsMeshes, outBody, checkpointBodies } = await createTrack({ physic })
 render.scene.add(trackMesh, ...trackMeshes, ...trackLights);
 
 const character3D = await createCharacter({ physic, shipMesh })
@@ -31,6 +32,7 @@ const characterControls = createCharacterControls({ ...character3D, physic, rend
 
 const cameraPosition = createCameraPosition(render, character3D.characterBaseMesh)
 
+const lapManager = createLapManager(checkpointBodies)
 
 const physicListener = createPhysicListener([
   {
@@ -39,6 +41,14 @@ const physicListener = createPhysicListener([
     other: [outBody],
     callback: () => {
       characterControls.restart()
+    }
+  },
+  {
+    eventName: 'added',
+    main: character3D.characterBody,
+    other: checkpointBodies,
+    callback: (bodyA: RigidBody, bodyB: RigidBody) => {
+      lapManager.hitCheckpoint([bodyA, bodyB])
     }
   },
   {
@@ -77,7 +87,7 @@ attachTick(({ deltaS }) => {
     fog.rotation.y = fog.userData.velocity * (Date.now() - startTime) / 20000
   }
 
-  render.hud.counter.update(Date.now() - startTime)
+  render.hud.counter.update(lapManager.getCurrentChrono())
   if (++i % 15 === 0) {
     render.hud.velocity.update(characterControls.physicVelocity.length() * Math.PI)
   }
@@ -136,12 +146,14 @@ function changeScreen(screen: 'controls' | 'home' | 'credits' | 'play' | 'pause'
       objectsRemove.push(controlMeshes, homeMeshes, creditsMeshes, pauseMeshes)
       characterControls.restart()
       characterControls.touchControls.enable()
+      lapManager.restart()
       isPlaying = true
       break
     case 'play':
       menuEventManager.disable()
       objectsRemove.push(controlMeshes, homeMeshes, creditsMeshes, pauseMeshes)
       characterControls.touchControls.enable()
+      lapManager.play()
       isPlaying = true
       break
     case 'pause':
@@ -149,6 +161,7 @@ function changeScreen(screen: 'controls' | 'home' | 'credits' | 'play' | 'pause'
       objectsAdd.push(pauseMeshes)
       objectsRemove.push(controlMeshes, homeMeshes, creditsMeshes, pauseMeshes)
       characterControls.touchControls.disable()
+      lapManager.pause()
       isPlaying = false
       break
     case 'home':
