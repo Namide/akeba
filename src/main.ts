@@ -87,7 +87,11 @@ attachTick(({ deltaS }) => {
     fog.rotation.y = fog.userData.velocity * (Date.now() - startTime) / 20000
   }
 
-  render.hud.counter.update(lapManager.getCurrentChrono())
+  render.hud.counter.update(
+    lapManager.getCurrentChrono(),
+    lapManager.getLastChronos(),
+    lapManager.getBestChronos(),
+  )
   if (++i % 15 === 0) {
     render.hud.velocity.update(characterControls.physicVelocity.length() * Math.PI)
   }

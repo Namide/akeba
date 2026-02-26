@@ -26,24 +26,72 @@ async function create(width: number, height: number) {
   }
 }
 
-export async function createCounter(width: number = 182, height: number = 16) {
+function chronoTimeToString(time: number) {
+  const min = Math.floor(time / 60000)
+  const sec = Math.floor(time / 1000) % 60
+  const ms = Math.floor(time / 10) % 100
+  return `${min < 10 ? '0' + min : min}:${sec < 10 ? '0' + sec : sec}.${ms < 10 ? '0' + ms : ms}`
+}
+
+export async function createCounter(width: number = 182, height: number = 64) {
   const { mesh, context, texture } = await create(width, height)
   return {
     width,
     height,
     mesh,
-    update: (time: number) => {
-      const min = Math.floor(time / 60000);
-      const sec = Math.floor(time / 1000) % 60
-      const ms = Math.floor(time / 10) % 100
-
-      const timeStr = `${min < 10 ? '0' + min : min}:${sec < 10 ? '0' + sec : sec}.${ms < 10 ? '0' + ms : ms}`
+    update: (current: number, last: number, best: number) => {
 
       context.clearRect(0, 0, width, height);
 
+      let y = 0
+      if (best > 0) {
+        y = height - 16
+
+        const bestStr = chronoTimeToString(best)
+
+        context.fillStyle = 'rgba(255,255,255,0.5)';
+        context.font = '8px audiowide';
+        // context.measureText(`${time}`).width
+        context.fillText('BEST', 0, 15 + y);
+
+        context.fillStyle = '#ffff00';
+        context.font = '10px audiowide';
+        context.fillText(bestStr, 30, 16 + y);
+      }
+
+      if (last > 0) {
+
+        if (best > 0) {
+          y = height - 28
+        } else {
+          y = height - 16
+        }
+
+        const bestStr = chronoTimeToString(last)
+
+        context.fillStyle = 'rgba(255,255,255,0.5)';
+        context.font = '8px audiowide';
+        // context.measureText(`${time}`).width
+        context.fillText('LAST', 0, 15 + y);
+
+        context.fillStyle = '#ffffff';
+        context.font = '10px audiowide';
+        context.fillText(bestStr, 30, 16 + y);
+      }
+
+      y = height - 14
+      if (best > 0) {
+        y -= 12
+      }
+      if (last > 0) {
+        y -= 12
+      }
+
+      const timeStr = chronoTimeToString(current)
+
       context.fillStyle = '#ffffff';
-      context.font = 'bold 10px audiowide';
-      context.fillText(timeStr, 1, 14);
+      context.font = '16px audiowide';
+      context.fillText(timeStr, -1, 14 + y);
 
       // context.fillStyle = 'rgba(255,255,255,0.5)';
       // context.font = '14px audiowide';
