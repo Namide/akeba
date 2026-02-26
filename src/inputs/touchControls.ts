@@ -9,6 +9,11 @@ export function createTouchInputs(inputs: Inputs) {
 
   const onStartEnd = () => {
     vector = undefined
+
+    inputs.left = false
+    inputs.right = false
+    inputs.action = false
+    inputs.cancel = false
   }
 
   const onMove = (_: any, data: { vector: { x: number, y: number } }) => {
@@ -21,21 +26,36 @@ export function createTouchInputs(inputs: Inputs) {
       joystick.off('move', onMove)
       joystick.destroy()
       joystick = undefined
+
     }
+
+    for (const div of document.body.querySelectorAll('.pause')) {
+      div.remove()
+    }
+
     vector = undefined
   }
 
   const enable = () => {
     disable()
+
     if (!isTouchDevice()) {
       return
     }
+
+    const div = document.createElement('div')
+    div.classList.add('pause')
+    div.addEventListener('click', () => {
+      inputs.select = true
+      requestAnimationFrame(() => inputs.select = false)
+    })
+    document.body.appendChild(div)
 
     joystick = nipplejs.create({
       zone: document.body.querySelector('.joystick') as HTMLDivElement,
       mode: 'semi',
       catchDistance: 150,
-      color: '#99C46E33' // 'white'
+      color: '#99C46E33'
     });
     (joystick
       .on('start end' as JoystickManagerEventTypes, onStartEnd) as unknown as nipplejs.JoystickManager)
