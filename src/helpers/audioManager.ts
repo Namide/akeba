@@ -51,16 +51,16 @@ export const createAudioManager = async () => {
       sources[name] = context.createBufferSource()
       sources[name].buffer = buffers[name] || null
       sources[name].connect(getGain(name, context.destination))
+      sources[name].start(0)
+      sources[name].loop = loop
     }
-    sources[name].start(0)
-    sources[name].loop = loop
   }
 
-  const stop = (name: SoundName) => {
-    if (sources[name]) {
-      sources[name].stop()
-    }
-  }
+  // const stop = (name: SoundName) => {
+  //   if (sources[name]) {
+  //     sources[name].stop()
+  //   }
+  // }
 
   const volume = (name: SoundName, value: number, ease = 0) => {
     if (gains[name]) {

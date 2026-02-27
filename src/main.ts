@@ -87,6 +87,14 @@ attachTick(({ deltaS }) => {
     if (characterControls.inputs.select) {
       changeScreen('pause')
     }
+
+    audioManager.volume(
+      'motor',
+      Math.min(1, characterControls.physicVelocity.length() / 190) * MOTOR_VOLUME
+    )
+    if (++i % 15 === 0) {
+      render.hud.velocity.update(characterControls.physicVelocity.length() * Math.PI)
+    }
   } else {
     menuEventManager.tick()
   }
@@ -105,13 +113,6 @@ attachTick(({ deltaS }) => {
     lapManager.getBestChronos(),
   )
 
-  audioManager.volume(
-    'motor',
-    Math.min(1, characterControls.physicVelocity.length() / 190) * MOTOR_VOLUME
-  )
-  if (++i % 15 === 0) {
-    render.hud.velocity.update(characterControls.physicVelocity.length() * Math.PI)
-  }
   render.render({ withHud: isPlaying })
 })
 
@@ -179,9 +180,10 @@ function changeScreen(screen: 'controls' | 'home' | 'credits' | 'play' | 'pause'
       isPlaying = true
 
       audioManager.play('music', true)
-      audioManager.volume('music', 1, 0)
       audioManager.play('motor', true)
       audioManager.play('scrape', true)
+
+      audioManager.volume('music', 1, 500)
 
       break
     case 'play':
@@ -197,13 +199,13 @@ function changeScreen(screen: 'controls' | 'home' | 'credits' | 'play' | 'pause'
     case 'pause':
       menuEventManager.enable([pauseMeshes])
       objectsAdd.push(pauseMeshes)
-      objectsRemove.push(controlMeshes, homeMeshes, creditsMeshes, pauseMeshes)
+      objectsRemove.push(controlMeshes, homeMeshes, creditsMeshes)
       characterControls.touchControls.disable()
       lapManager.pause()
       isPlaying = false
 
       audioManager.volume('music', MUSIC_MENU_VOLUME, 500)
-      audioManager.volume('motor', 1, 0)
+      audioManager.volume('motor', 0, 500)
 
       break
     case 'home':
@@ -214,7 +216,8 @@ function changeScreen(screen: 'controls' | 'home' | 'credits' | 'play' | 'pause'
       isPlaying = false
 
       audioManager.volume('music', MUSIC_MENU_VOLUME, 500)
-      audioManager.volume('motor', 1, 0)
+      audioManager.volume('motor', 0, 500)
+
       break
     case 'credits':
       menuEventManager.enable([creditsMeshes])
@@ -224,7 +227,8 @@ function changeScreen(screen: 'controls' | 'home' | 'credits' | 'play' | 'pause'
       isPlaying = false
 
       audioManager.volume('music', MUSIC_MENU_VOLUME, 500)
-      audioManager.volume('motor', 1, 0)
+      audioManager.volume('motor', 0, 500)
+
       break
     case 'controls':
       menuEventManager.enable([controlMeshes])
@@ -234,7 +238,8 @@ function changeScreen(screen: 'controls' | 'home' | 'credits' | 'play' | 'pause'
       isPlaying = false
 
       audioManager.volume('music', MUSIC_MENU_VOLUME, 500)
-      audioManager.volume('motor', 1, 0)
+      audioManager.volume('motor', 0, 500)
+
       break
   }
 
@@ -264,11 +269,11 @@ function changeScreen(screen: 'controls' | 'home' | 'credits' | 'play' | 'pause'
     object3D.quaternion.copy(render.camera.quaternion)
   }
 
-  render.scene.remove(...objectsRemove)
-
   if (objectsAdd.length > 0) {
     render.scene.add(...objectsAdd)
   }
+
+  render.scene.remove(...objectsRemove)
 }
 
 document.body.querySelector('.loading')?.remove()
