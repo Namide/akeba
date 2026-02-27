@@ -5,6 +5,7 @@
 Tiny spaceship racing demo with PS-style created for the [Three.js Journey Challenge #022]()
 
 Theme: _Spaceship_  
-Dates: _from February 1 to February 28 2026_ 
+Dates: _from February 1 to February 28 2026_  
+Music: [Aerosteak](https://soundcloud.com/aerosteak)
 
 Try it on [akeba.namide.com](https://akeba.namide.com/)

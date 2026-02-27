@@ -38,9 +38,10 @@ export function createLapManager(checkpoints: RigidBody[]) {
     hitCheckpoint(bodies: RigidBody[]) {
       for (const body of bodies) {
         const index = checkpoints.indexOf(body)
-        if (index > -1 && currentCheckpointIndex === checkpoints.length - 1 && index === ((currentCheckpointIndex + 1) % checkpoints.length)) {
+        if (index > -1 && index === ((currentCheckpointIndex + 1) % checkpoints.length)) {
+          const lastIndex = currentCheckpointIndex
           currentCheckpointIndex = index;
-          if (currentCheckpointIndex === 0) {
+          if (currentCheckpointIndex === 0 && lastIndex === checkpoints.length - 1) {
             const now = Date.now()
             const currentChrono = now - chronoStartLapTime
 

@@ -43,6 +43,11 @@ export async function createCounter(width: number = 182, height: number = 64) {
 
       context.clearRect(0, 0, width, height);
 
+      // Only display best if best is last
+      if (best === last) {
+        last = 0
+      }
+
       let y = 0
       if (best > 0) {
         y = height - 16
