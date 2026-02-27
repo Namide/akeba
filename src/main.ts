@@ -13,10 +13,14 @@ import { createPhysicListener } from './physic/createPhysicListener';
 import { MenuEventsManager } from './inputs/MenuEventsManager';
 import { createRenderEngine } from './render/Render';
 import { createLapManager } from './gameplay/createLapManager';
+import { createAudioManager } from './helpers/audioManager';
+import { MUSIC_MENU_VOLUME } from './config';
 
 let isPlaying = true
 
 const render = await createRenderEngine(document.body.querySelector('canvas')!)
+
+const audioManager = await createAudioManager()
 
 const physic = new Physic()
 
@@ -152,6 +156,10 @@ function changeScreen(screen: 'controls' | 'home' | 'credits' | 'play' | 'pause'
       characterControls.touchControls.enable()
       lapManager.restart()
       isPlaying = true
+
+      audioManager.play('music', true)
+      audioManager.volume('music', 1, 500)
+
       break
     case 'play':
       menuEventManager.disable()
@@ -159,6 +167,9 @@ function changeScreen(screen: 'controls' | 'home' | 'credits' | 'play' | 'pause'
       characterControls.touchControls.enable()
       lapManager.play()
       isPlaying = true
+
+      audioManager.volume('music', 1, 500)
+
       break
     case 'pause':
       menuEventManager.enable([pauseMeshes])
@@ -167,6 +178,9 @@ function changeScreen(screen: 'controls' | 'home' | 'credits' | 'play' | 'pause'
       characterControls.touchControls.disable()
       lapManager.pause()
       isPlaying = false
+
+      audioManager.volume('music', MUSIC_MENU_VOLUME, 500)
+
       break
     case 'home':
       menuEventManager.enable([homeMeshes])
@@ -174,6 +188,8 @@ function changeScreen(screen: 'controls' | 'home' | 'credits' | 'play' | 'pause'
       objectsRemove.push(controlMeshes, creditsMeshes, pauseMeshes)
       characterControls.touchControls.disable()
       isPlaying = false
+
+      audioManager.volume('music', MUSIC_MENU_VOLUME, 500)
       break
     case 'credits':
       menuEventManager.enable([creditsMeshes])
@@ -181,6 +197,8 @@ function changeScreen(screen: 'controls' | 'home' | 'credits' | 'play' | 'pause'
       objectsRemove.push(controlMeshes, homeMeshes, pauseMeshes)
       characterControls.touchControls.disable()
       isPlaying = false
+
+      audioManager.volume('music', MUSIC_MENU_VOLUME, 500)
       break
     case 'controls':
       menuEventManager.enable([controlMeshes])
@@ -188,6 +206,8 @@ function changeScreen(screen: 'controls' | 'home' | 'credits' | 'play' | 'pause'
       objectsRemove.push(homeMeshes, creditsMeshes, pauseMeshes)
       characterControls.touchControls.disable()
       isPlaying = false
+
+      audioManager.volume('music', MUSIC_MENU_VOLUME, 500)
       break
   }
 

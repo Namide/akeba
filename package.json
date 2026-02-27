@@ -20,6 +20,7 @@
     "mathcat": "^0.0.10",
     "nipplejs": "^0.10.2",
     "three": "^0.182.0",
-    "three-mesh-bvh": "^0.9.8"
+    "three-mesh-bvh": "^0.9.8",
+    "twon": "^0.1.1"
   }
 }
