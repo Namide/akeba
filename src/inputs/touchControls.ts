@@ -80,6 +80,6 @@ export function createTouchInputs(inputs: Inputs) {
   }
 }
 
-function isTouchDevice() {
+export function isTouchDevice() {
   return window.matchMedia("(pointer: coarse)").matches
 }

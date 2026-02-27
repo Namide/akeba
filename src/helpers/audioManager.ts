@@ -3,10 +3,9 @@ import motor from '../assets/sounds/motor.mp3'
 import scrape from '../assets/sounds/scrape.mp3'
 import silence from '../assets/sounds/silence.mp3'
 import { SimpleTween, linear } from "twon"
+import { isTouchDevice } from '../inputs/touchControls'
 
 export type SoundName = 'music' | 'motor' | 'scrape' | 'silence'
-
-const IS_IOS = /iPad|iPhone|iPod/.test(navigator.platform)
 
 const audioSrcList: Record<SoundName, string> = {
   music,
@@ -86,13 +85,19 @@ export const createAudioManager = async () => {
     }
   }
 
-  if (IS_IOS) {
+  if (isTouchDevice()) {
     // https://curtisrobinson.medium.com/how-to-auto-play-audio-in-safari-with-javascript-21d50b0a2765
     const playSilence = () => {
       play('silence')
       document.body.removeEventListener('touchstart', playSilence, false)
     }
     document.body.addEventListener('touchstart', playSilence, false)
+  } else {
+    const playSilence = () => {
+      play('silence')
+      document.body.removeEventListener('mousedown', playSilence, false)
+    }
+    document.body.addEventListener('mousedown', playSilence, false)
   }
 
   return {
