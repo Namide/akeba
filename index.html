@@ -16,11 +16,26 @@
     content="Spaceship racing demo with PS-style created for the Three.js Journey Challenge">
   <meta property="og:url" content="https://akeba.namide.com/">
   <meta property="og:image" content="https://akeba.namide.com/assets/cover.jpg">
+  <style>
+    html {
+      background: #000;
+    }
+
+    .loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translateX(-50%) translateY(-50%);
+      width: 30vh;
+      image-rendering: pixelated;
+    }
+  </style>
 </head>
 
 <body>
   <canvas></canvas>
   <div class="joystick"></div>
+  <img src="/assets/loading.png" alt="Loading" class="loading">
   <!-- <div class="pause"></div> -->
   <!-- <div class="output">_</div> -->
 </body>

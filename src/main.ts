@@ -271,4 +271,5 @@ function changeScreen(screen: 'controls' | 'home' | 'credits' | 'play' | 'pause'
   }
 }
 
+document.body.querySelector('.loading')?.remove()
 changeScreen('home')
