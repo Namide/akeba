@@ -67,7 +67,7 @@ export const createAudioManager = async () => {
     if (gains[name]) {
 
       if (ease) {
-        const tween = new SimpleTween(
+        new SimpleTween(
           [
             gains[name]!.gain.value,
             value
