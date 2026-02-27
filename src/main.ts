@@ -1,7 +1,7 @@
 import './style.css';
 import './helpers/initThree'
 
-import { RigidBody, updateWorld } from "crashcat";
+import { ContactManifold, RigidBody, updateWorld } from "crashcat";
 import { Physic } from "./physic/Physic";
 import { attachTick } from "./helpers/attachTick";
 import { createCharacter } from "./entities/createCharacter";
@@ -14,7 +14,7 @@ import { MenuEventsManager } from './inputs/MenuEventsManager';
 import { createRenderEngine } from './render/Render';
 import { createLapManager } from './gameplay/createLapManager';
 import { createAudioManager } from './helpers/audioManager';
-import { MUSIC_MENU_VOLUME } from './config';
+import { MOTOR_VOLUME, MUSIC_MENU_VOLUME, SCRAP_VOLUME } from './config';
 
 let isPlaying = true
 
@@ -59,7 +59,15 @@ const physicListener = createPhysicListener([
     eventName: 'persist',
     main: character3D.characterBody,
     other: [trackBody],
-    callback: characterControls.updateNormal
+    callback: (bodyA: RigidBody, bodyB: RigidBody, manifold: ContactManifold) => {
+      if (manifold.worldSpaceNormal[1] < 0.5) {
+        scrape(
+          characterControls.physicVelocity.length() / 190
+        )
+      }
+
+      characterControls.updateNormal(bodyA, bodyB, manifold)
+    }
   }
 ])
 
@@ -96,12 +104,25 @@ attachTick(({ deltaS }) => {
     lapManager.getLastChronos(),
     lapManager.getBestChronos(),
   )
+
+  audioManager.volume(
+    'motor',
+    Math.min(1, characterControls.physicVelocity.length() / 190) * MOTOR_VOLUME
+  )
   if (++i % 15 === 0) {
     render.hud.velocity.update(characterControls.physicVelocity.length() * Math.PI)
   }
   render.render({ withHud: isPlaying })
 })
 
+let scrapeTo: number
+function scrape(volume: number) {
+  clearTimeout(scrapeTo)
+  audioManager.volume('scrape', volume * SCRAP_VOLUME)
+  scrapeTo = setTimeout(() => {
+    audioManager.volume('scrape', 0, 50)
+  }, 500)
+}
 
 // Screens
 
@@ -158,7 +179,9 @@ function changeScreen(screen: 'controls' | 'home' | 'credits' | 'play' | 'pause'
       isPlaying = true
 
       audioManager.play('music', true)
-      audioManager.volume('music', 1, 500)
+      audioManager.volume('music', 1, 0)
+      audioManager.play('motor', true)
+      audioManager.play('scrape', true)
 
       break
     case 'play':
@@ -180,6 +203,7 @@ function changeScreen(screen: 'controls' | 'home' | 'credits' | 'play' | 'pause'
       isPlaying = false
 
       audioManager.volume('music', MUSIC_MENU_VOLUME, 500)
+      audioManager.volume('motor', 1, 0)
 
       break
     case 'home':
@@ -190,6 +214,7 @@ function changeScreen(screen: 'controls' | 'home' | 'credits' | 'play' | 'pause'
       isPlaying = false
 
       audioManager.volume('music', MUSIC_MENU_VOLUME, 500)
+      audioManager.volume('motor', 1, 0)
       break
     case 'credits':
       menuEventManager.enable([creditsMeshes])
@@ -199,6 +224,7 @@ function changeScreen(screen: 'controls' | 'home' | 'credits' | 'play' | 'pause'
       isPlaying = false
 
       audioManager.volume('music', MUSIC_MENU_VOLUME, 500)
+      audioManager.volume('motor', 1, 0)
       break
     case 'controls':
       menuEventManager.enable([controlMeshes])
@@ -208,6 +234,7 @@ function changeScreen(screen: 'controls' | 'home' | 'credits' | 'play' | 'pause'
       isPlaying = false
 
       audioManager.volume('music', MUSIC_MENU_VOLUME, 500)
+      audioManager.volume('motor', 1, 0)
       break
   }
 
