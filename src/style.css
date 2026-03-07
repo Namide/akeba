@@ -1,3 +1,8 @@
+@font-face {
+  font-family: "audiowide";
+  src: url("/assets/audiowide-v22-latin-regular.woff2") format("woff2");
+}
+
 :root {
   line-height: 24px;
 
