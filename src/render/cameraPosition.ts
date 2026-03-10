@@ -8,7 +8,7 @@ export function createCameraPosition(render: Render, character: Mesh) {
   if (DEBUG) {
     const controls = new OrbitControls(render.camera, render.renderer.domElement);
 
-    render.camera.position.set(0, 20, 100);
+    render.camera.position.set(100, 10, 10);
     controls.update();
     return {
       tick: () => {

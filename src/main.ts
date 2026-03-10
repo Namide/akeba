@@ -1,5 +1,5 @@
 import './style.css';
-import './helpers/initThree'
+import './render/initThree'
 
 import { ContactManifold, RigidBody, updateWorld } from "crashcat";
 import { Physic } from "./physic/Physic";
@@ -14,7 +14,7 @@ import { MenuEventsManager } from './inputs/MenuEventsManager';
 import { createRenderEngine } from './render/Render';
 import { createLapManager } from './gameplay/createLapManager';
 import { createAudioManager } from './helpers/audioManager';
-import { MOTOR_VOLUME, MUSIC_MENU_VOLUME, SCRAP_VOLUME } from './config';
+import { DEBUG, MOTOR_VOLUME, MUSIC_MENU_VOLUME, SCRAP_VOLUME } from './config';
 
 let isPlaying = true
 
@@ -24,7 +24,7 @@ const audioManager = await createAudioManager()
 
 const physic = new Physic()
 
-const { trackMesh, trackBody, trackMeshes, shipMesh, trackLights, fogMeshes, controlMeshes, homeMeshes, pauseMeshes, creditsMeshes, outBody, checkpointBodies } = await createTrack({ physic })
+const { trackMesh, trackBody, trackMeshes, shipMesh, trackLights, fogMeshes, controlMeshes, homeMeshes, pauseMeshes, creditsMeshes, outBody, checkpointBodies } = await createTrack({ physic, render })
 render.scene.add(trackMesh, ...trackMeshes, ...trackLights);
 
 const character3D = await createCharacter({ physic, shipMesh })
@@ -162,7 +162,7 @@ menuEventManager.addEvent('out', 'button-restart', setOut)
 menuEventManager.addEvent('click', 'button-restart', gotRestart)
 
 let menuData: { tick: () => void, dispose: () => void } | undefined
-function changeScreen(screen: 'controls' | 'home' | 'credits' | 'play' | 'pause' | 'restart') {
+function changeScreen(screen: 'controls' | 'home' | 'credits' | 'play' | 'pause' | 'restart' | 'debug') {
   const objectsAdd: Object3D[] = []
   const objectsRemove: Object3D[] = []
 
@@ -171,6 +171,16 @@ function changeScreen(screen: 'controls' | 'home' | 'credits' | 'play' | 'pause'
   }
 
   switch (screen) {
+    case 'debug':
+      menuEventManager.disable()
+      objectsRemove.push(controlMeshes, homeMeshes, creditsMeshes, pauseMeshes)
+      characterControls.touchControls.disable()
+      isPlaying = false
+
+      // audioManager.volume('music', MUSIC_MENU_VOLUME, 500)
+      // audioManager.volume('motor', 0, 500)
+      break
+
     case 'restart':
       menuEventManager.disable()
       objectsRemove.push(controlMeshes, homeMeshes, creditsMeshes, pauseMeshes)
@@ -277,4 +287,10 @@ function changeScreen(screen: 'controls' | 'home' | 'credits' | 'play' | 'pause'
 }
 
 document.body.querySelector('.loading')?.remove()
-changeScreen('home')
+
+if (DEBUG) {
+  changeScreen('debug')
+} else {
+  changeScreen('home')
+}
+

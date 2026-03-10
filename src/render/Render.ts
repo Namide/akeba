@@ -3,15 +3,25 @@ import {
   CameraHelper,
   DirectionalLight,
   Fog,
+  NearestFilter,
   PerspectiveCamera,
+  RGBFormat,
   Scene,
+  SRGBColorSpace,
+  UnsignedByteType,
   WebGLRenderer,
+  WebGLRenderTarget,
 } from 'three';
 import { resizeRendererToDisplaySize } from './responsiveness';
-import { DEBUG, RESOLUTION_HEIGHT } from '../config';
+import { DEBUG } from '../config';
 import { createHud } from './createHud';
+import { retroizeTexture } from './retroize';
+import { LinearSRGBColorSpace } from 'three';
 
 export type Render = Awaited<ReturnType<typeof createRenderEngine>>
+
+export const MAIN_LAYER = 0;
+export const BACKGROUND_LAYER = 1;
 
 export async function createRenderEngine(canvas: HTMLCanvasElement) {
 
@@ -27,10 +37,26 @@ export async function createRenderEngine(canvas: HTMLCanvasElement) {
   renderer.setPixelRatio(pixelRatio);
   renderer.autoClear = false
   renderer.shadowMap.enabled = true;
+  renderer.outputColorSpace = LinearSRGBColorSpace
   // renderer.shadowMap.type = PCFShadowMap;
 
   const scene = new Scene();
-  scene.fog = new Fog('#8e8ac0', 1, 1000);
+  scene.fog = new Fog('#ffffff', 1, 1000);
+
+  // ===== 🖼️ BACKGROUND =====
+  const backgroundRenderTarget = new WebGLRenderTarget(
+    canvas.clientWidth,
+    canvas.clientHeight,
+    {
+      minFilter: NearestFilter,
+      magFilter: NearestFilter,
+
+      format: RGBFormat,
+      colorSpace: SRGBColorSpace,
+      type: UnsignedByteType,
+    }
+  );
+  retroizeTexture(backgroundRenderTarget.texture)
 
   // ===== ⏱️ HUD =====
   const hud = await createHud()
@@ -40,10 +66,10 @@ export async function createRenderEngine(canvas: HTMLCanvasElement) {
   camera.position.set(0, 3, 8);
 
   // ===== 💡 LIGHTS =====
-  const ambientLight = new AmbientLight('#BB77FF', .5);
+  const ambientLight = new AmbientLight('#9789c4', 4);
   scene.add(ambientLight);
 
-  const directionalLight = new DirectionalLight('#FFF0CA', 1.3);
+  const directionalLight = new DirectionalLight('#FFF0CA', 2);
   directionalLight.castShadow = true;
   directionalLight.shadow.radius = 1;
   directionalLight.shadow.bias = -0.0005;
@@ -65,12 +91,13 @@ export async function createRenderEngine(canvas: HTMLCanvasElement) {
 
   const resize = () => {
     if (resizeRendererToDisplaySize(renderer)) {
-      const { clientWidth, clientHeight } = renderer.domElement;
-      camera.aspect = clientWidth / clientHeight;
+      const { width, height } = renderer.domElement;
+
+      camera.aspect = width / height;
       camera.updateProjectionMatrix();
 
-      const width = Math.round(RESOLUTION_HEIGHT * clientWidth / clientHeight)
-      const height = Math.round(RESOLUTION_HEIGHT)
+      backgroundRenderTarget.setSize(width, height)
+
       hud.resize(width, height);
     }
   }
@@ -78,14 +105,34 @@ export async function createRenderEngine(canvas: HTMLCanvasElement) {
   resize()
 
   return {
+
     scene,
     camera,
     hud,
     renderer,
+    backgroundRenderTarget,
 
     render({ withHud }: { withHud: boolean }) {
+
+      // Render background
+      camera.layers.set(BACKGROUND_LAYER);
       renderer.clear();
+      // renderer.outputColorSpace = SRGBColorSpace
+      renderer.setRenderTarget(backgroundRenderTarget);
       renderer.render(scene, camera);
+
+      // Render scene
+      renderer.clearDepth();
+      // renderer.outputColorSpace = SRGBColorSpace
+      renderer.setRenderTarget(null);
+      camera.layers.set(MAIN_LAYER);
+
+      // renderer.toneMapping = LinearToneMapping
+      // renderer.toneMappingExposure = 2.0;
+
+      renderer.render(scene, camera);
+
+      // Render HUD
       if (withHud) {
         renderer.clearDepth();
         renderer.render(hud.scene, hud.camera);

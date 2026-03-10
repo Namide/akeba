@@ -1,4 +1,4 @@
-import { CanvasTexture, Mesh, MeshBasicMaterial, PlaneGeometry } from "three";
+import { CanvasTexture, Color, Mesh, MeshBasicMaterial, PlaneGeometry } from "three";
 
 async function create(width: number, height: number) {
   const canvas = document.createElement('canvas');
@@ -110,6 +110,25 @@ export async function createCounter(width: number = 182, height: number = 64) {
 
 export async function createVelocity(width: number = 64, height: number = 16) {
   const { mesh, context, texture } = await create(width, height)
+
+  const slowColor = new Color('#ffffff')
+  const speedColor = new Color('#ffff00')
+  const fastColor = new Color('#ff0000')
+  const limits = [0, 400, 600]
+
+  const getColor = (speed: number) => {
+    if (speed < limits[0]) {
+      return slowColor.getHexString()
+    }
+    if (speed < limits[1]) {
+      return slowColor.clone().lerp(speedColor, speed / limits[1]).getHexString()
+    }
+    if (speed < limits[2]) {
+      return speedColor.clone().lerp(fastColor, (speed - limits[1]) / (limits[2] - limits[1])).getHexString()
+    }
+    return fastColor.getHexString()
+  }
+
   return {
     width,
     height,
@@ -123,9 +142,11 @@ export async function createVelocity(width: number = 64, height: number = 16) {
       // context.rect(0, 0, width, height);
       // context.fill();
 
-      context.fillStyle = '#ffffff';
+
+
+      context.fillStyle = `#${getColor(num)}`;
       context.font = 'bold 20px audiowide';
-      context.fillText(num.toFixed(0), 64 / 2 - num.toFixed(0).length * 10, 14);
+      context.fillText(num.toFixed(0), 64 / 2 - num.toFixed(0).length * 10, 16);
 
       // context.fillStyle = 'rgba(255,255,255,0.5)';
       // context.font = '14px audiowide';

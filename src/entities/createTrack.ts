@@ -6,8 +6,10 @@ import { loadTrack } from "../render/loadTrack"
 import { OBJECT_LAYER_NOT_MOVING, Physic, PHYSIC_GROUP } from "../physic/Physic"
 import { createTriangleShape } from "../physic/createTriangleShape"
 import { retroizeMaterial } from "../render/retroize"
+import { BACKGROUND_LAYER, MAIN_LAYER, Render } from "../render/Render"
+import { fogify } from "../render/fogify"
 
-export async function createTrack({ physic }: { physic: Physic }) {
+export async function createTrack({ physic, render }: { physic: Physic, render: Render }) {
   const disposeCallbacks: (() => any)[] = []
 
   const { trackMesh, trackMeshes, shipMesh, trackLights, controlMeshes, homeMeshes, pauseMeshes, creditsMeshes, outMesh, checkpointMeshes } = await loadTrack()
@@ -41,6 +43,7 @@ export async function createTrack({ physic }: { physic: Physic }) {
   }
 
   retroizeMaterial(trackMesh.material as MeshLambertMaterial)
+  fogify(trackMesh.material as MeshLambertMaterial, render.backgroundRenderTarget.texture)
   trackMesh.receiveShadow = true;
   trackMesh.castShadow = true;
 
@@ -66,14 +69,35 @@ export async function createTrack({ physic }: { physic: Physic }) {
 
   // Skybox
   for (const mesh of trackMeshes.filter(mesh => mesh.name.indexOf('sky') !== -1)) {
+    const texture = (mesh.material as MeshLambertMaterial).emissiveMap
+
     mesh.material = new MeshBasicMaterial({
-      map: (mesh.material as MeshLambertMaterial).emissiveMap
+      map: texture,
+      depthWrite: false,
+      // depthTest: false,
+      fog: false
     })
+    mesh.layers.set(BACKGROUND_LAYER)
+
     retroizeMaterial(mesh.material as MeshLambertMaterial)
+    // fogify(mesh.material as MeshLambertMaterial, render.backgroundRenderTarget.texture)
+
+    const clone = mesh.clone()
+    clone.name = 'clone'
+    clone.material = new MeshBasicMaterial({
+      map: texture,
+      // depthWrite: true,
+      // depthTest: false,
+      fog: false
+    })
+    clone.layers.set(MAIN_LAYER)
+    retroizeMaterial(clone.material as MeshLambertMaterial)
+    trackMeshes.push(clone)
   }
 
   for (const mesh of trackMeshes.filter(mesh => mesh.name.indexOf('sky') === -1)) {
     retroizeMaterial(mesh.material as MeshLambertMaterial)
+    fogify(mesh.material as MeshLambertMaterial, render.backgroundRenderTarget.texture)
     mesh.receiveShadow = true;
     mesh.castShadow = true;
   }
@@ -84,6 +108,7 @@ export async function createTrack({ physic }: { physic: Physic }) {
       alphaMap: (mesh.material as MeshLambertMaterial).map
     })
     retroizeMaterial(mesh.material as MeshLambertMaterial);
+    fogify(mesh.material as MeshLambertMaterial, render.backgroundRenderTarget.texture);
 
     (mesh.material as MeshLambertMaterial).blending = AdditiveBlending;
     (mesh.material as MeshLambertMaterial).depthWrite = false
@@ -95,6 +120,7 @@ export async function createTrack({ physic }: { physic: Physic }) {
       alphaMap: (mesh.material as MeshLambertMaterial).emissiveMap,
     })
     retroizeMaterial(mesh.material as MeshLambertMaterial);
+    fogify(mesh.material as MeshLambertMaterial, render.backgroundRenderTarget.texture);
 
     (mesh.material as MeshLambertMaterial).blending = AdditiveBlending;
     (mesh.material as MeshLambertMaterial).depthWrite = false;
