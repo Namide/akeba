@@ -157,8 +157,12 @@ function cleanMenu(group: Group) {
 
       const mesh = object as Mesh<BufferGeometry, MeshLambertMaterial | MeshBasicMaterial>
 
-      if (mesh.name.indexOf('wireframe') > -1) {
-
+      if (['keyboard', 'controller'].find(name => mesh.name.indexOf(name) > -1)) {
+        mesh.material = new MeshLambertMaterial({
+          // wireframe: true,
+          color: (mesh.material as MeshLambertMaterial).color
+        })
+      } else if (mesh.name.indexOf('wireframe') > -1) {
         mesh.material = new MeshBasicMaterial({
           wireframe: true,
           color: '#ffffff'
@@ -176,7 +180,11 @@ function cleanMenu(group: Group) {
         retroizeMaterial(mesh.material as any as MeshLambertMaterial)
 
         // mesh.material.map!.magFilter = LinearFilter
-        mesh.material.map!.minFilter = LinearFilter
+
+        if (mesh.material.map) {
+          mesh.material.map.minFilter = LinearFilter
+        }
+
         // texture.anisotropy = 0
         // texture.magFilter = NearestFilter
         // texture.minFilter = NearestFilter
