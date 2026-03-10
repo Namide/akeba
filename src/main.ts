@@ -8,7 +8,7 @@ import { createCharacter } from "./entities/createCharacter";
 import { createCameraPosition } from "./render/cameraPosition";
 import { createCharacterControls } from "./gameplay/createCharacterControls";
 import { createTrack } from "./entities/createTrack";
-import { BufferGeometry, Fog, Group, Mesh, MeshLambertMaterial, Object3D, PerspectiveCamera, Vector3 } from 'three';
+import { BufferGeometry, Fog, Mesh, MeshLambertMaterial, Object3D, PerspectiveCamera, Vector3 } from 'three';
 import { createPhysicListener } from './physic/createPhysicListener';
 import { MenuEventsManager } from './inputs/MenuEventsManager';
 import { createRenderEngine } from './render/Render';
