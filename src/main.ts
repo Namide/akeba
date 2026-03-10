@@ -8,13 +8,13 @@ import { createCharacter } from "./entities/createCharacter";
 import { createCameraPosition } from "./render/cameraPosition";
 import { createCharacterControls } from "./gameplay/createCharacterControls";
 import { createTrack } from "./entities/createTrack";
-import { BufferGeometry, Mesh, MeshLambertMaterial, Object3D, PerspectiveCamera, Vector3 } from 'three';
+import { BufferGeometry, Fog, Group, Mesh, MeshLambertMaterial, Object3D, PerspectiveCamera, Vector3 } from 'three';
 import { createPhysicListener } from './physic/createPhysicListener';
 import { MenuEventsManager } from './inputs/MenuEventsManager';
 import { createRenderEngine } from './render/Render';
 import { createLapManager } from './gameplay/createLapManager';
 import { createAudioManager } from './helpers/audioManager';
-import { DEBUG, MOTOR_VOLUME, MUSIC_MENU_VOLUME, SCRAP_VOLUME } from './config';
+import { COVER, DEBUG, MOTOR_VOLUME, MUSIC_MENU_VOLUME, SCRAP_VOLUME } from './config';
 
 let isPlaying = true
 
@@ -24,7 +24,7 @@ const audioManager = await createAudioManager()
 
 const physic = new Physic()
 
-const { trackMesh, trackBody, trackMeshes, shipMesh, trackLights, fogMeshes, controlMeshes, homeMeshes, pauseMeshes, creditsMeshes, outBody, checkpointBodies } = await createTrack({ physic, render })
+const { trackMesh, trackBody, trackMeshes, shipMesh, trackLights, fogMeshes, controlMeshes, homeMeshes, pauseMeshes, creditsMeshes, outBody, checkpointBodies, coverMeshes } = await createTrack({ physic, render })
 render.scene.add(trackMesh, ...trackMeshes, ...trackLights);
 
 const character3D = await createCharacter({ physic, shipMesh })
@@ -92,6 +92,8 @@ attachTick(({ deltaS }) => {
       'motor',
       Math.min(1, characterControls.physicVelocity.length() / 190) * MOTOR_VOLUME
     )
+
+    // Update speed display on hub every 15 frames
     if (++i % 15 === 0) {
       render.hud.velocity.update(characterControls.physicVelocity.length() * Math.PI)
     }
@@ -162,7 +164,8 @@ menuEventManager.addEvent('out', 'button-restart', setOut)
 menuEventManager.addEvent('click', 'button-restart', gotRestart)
 
 let menuData: { tick: () => void, dispose: () => void } | undefined
-function changeScreen(screen: 'controls' | 'home' | 'credits' | 'play' | 'pause' | 'restart' | 'debug') {
+function changeScreen(screen: 'controls' | 'home' | 'credits' | 'play' | 'pause' | 'restart' | 'debug' | 'cover'
+) {
   const objectsAdd: Object3D[] = []
   const objectsRemove: Object3D[] = []
 
@@ -171,9 +174,27 @@ function changeScreen(screen: 'controls' | 'home' | 'credits' | 'play' | 'pause'
   }
 
   switch (screen) {
+    case 'cover':
+
+      (render.scene.fog as Fog).far = 2000
+
+
+      objectsAdd.push(coverMeshes)
+      objectsRemove.push(controlMeshes, creditsMeshes, pauseMeshes)
+      characterControls.touchControls.disable()
+      isPlaying = false
+
+      character3D.characterMesh.position.set(400, 110, -260)
+      character3D.characterMesh.rotation.set(4.248, 5.7522, 3.8938)
+      character3D.characterMesh.scale.set(40, 40, 40)
+
+      // audioManager.volume('music', MUSIC_MENU_VOLUME, 500)
+      // audioManager.volume('motor', 0, 500)
+      break
+
     case 'debug':
-      menuEventManager.disable()
-      objectsRemove.push(controlMeshes, homeMeshes, creditsMeshes, pauseMeshes)
+      objectsAdd.push(homeMeshes)
+      objectsRemove.push(controlMeshes, creditsMeshes, pauseMeshes, coverMeshes)
       characterControls.touchControls.disable()
       isPlaying = false
 
@@ -183,7 +204,7 @@ function changeScreen(screen: 'controls' | 'home' | 'credits' | 'play' | 'pause'
 
     case 'restart':
       menuEventManager.disable()
-      objectsRemove.push(controlMeshes, homeMeshes, creditsMeshes, pauseMeshes)
+      objectsRemove.push(controlMeshes, homeMeshes, creditsMeshes, pauseMeshes, coverMeshes)
       characterControls.restart()
       characterControls.touchControls.enable()
       lapManager.restart()
@@ -198,7 +219,7 @@ function changeScreen(screen: 'controls' | 'home' | 'credits' | 'play' | 'pause'
       break
     case 'play':
       menuEventManager.disable()
-      objectsRemove.push(controlMeshes, homeMeshes, creditsMeshes, pauseMeshes)
+      objectsRemove.push(controlMeshes, homeMeshes, creditsMeshes, pauseMeshes, coverMeshes)
       characterControls.touchControls.enable()
       lapManager.play()
       isPlaying = true
@@ -209,7 +230,7 @@ function changeScreen(screen: 'controls' | 'home' | 'credits' | 'play' | 'pause'
     case 'pause':
       menuEventManager.enable([pauseMeshes])
       objectsAdd.push(pauseMeshes)
-      objectsRemove.push(controlMeshes, homeMeshes, creditsMeshes)
+      objectsRemove.push(controlMeshes, homeMeshes, creditsMeshes, coverMeshes)
       characterControls.touchControls.disable()
       lapManager.pause()
       isPlaying = false
@@ -221,7 +242,7 @@ function changeScreen(screen: 'controls' | 'home' | 'credits' | 'play' | 'pause'
     case 'home':
       menuEventManager.enable([homeMeshes])
       objectsAdd.push(homeMeshes)
-      objectsRemove.push(controlMeshes, creditsMeshes, pauseMeshes)
+      objectsRemove.push(controlMeshes, creditsMeshes, pauseMeshes, coverMeshes)
       characterControls.touchControls.disable()
       isPlaying = false
 
@@ -232,7 +253,7 @@ function changeScreen(screen: 'controls' | 'home' | 'credits' | 'play' | 'pause'
     case 'credits':
       menuEventManager.enable([creditsMeshes])
       objectsAdd.push(creditsMeshes)
-      objectsRemove.push(controlMeshes, homeMeshes, pauseMeshes)
+      objectsRemove.push(controlMeshes, homeMeshes, pauseMeshes, coverMeshes)
       characterControls.touchControls.disable()
       isPlaying = false
 
@@ -243,7 +264,7 @@ function changeScreen(screen: 'controls' | 'home' | 'credits' | 'play' | 'pause'
     case 'controls':
       menuEventManager.enable([controlMeshes])
       objectsAdd.push(controlMeshes)
-      objectsRemove.push(homeMeshes, creditsMeshes, pauseMeshes)
+      objectsRemove.push(homeMeshes, creditsMeshes, pauseMeshes, coverMeshes)
       characterControls.touchControls.disable()
       isPlaying = false
 
@@ -288,7 +309,9 @@ function changeScreen(screen: 'controls' | 'home' | 'credits' | 'play' | 'pause'
 
 document.body.querySelector('.loading')?.remove()
 
-if (DEBUG) {
+if (COVER) {
+  changeScreen('cover')
+} else if (DEBUG) {
   changeScreen('debug')
 } else {
   changeScreen('home')

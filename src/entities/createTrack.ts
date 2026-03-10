@@ -12,7 +12,7 @@ import { fogify } from "../render/fogify"
 export async function createTrack({ physic, render }: { physic: Physic, render: Render }) {
   const disposeCallbacks: (() => any)[] = []
 
-  const { trackMesh, trackMeshes, shipMesh, trackLights, controlMeshes, homeMeshes, pauseMeshes, creditsMeshes, outMesh, checkpointMeshes } = await loadTrack()
+  const { trackMesh, trackMeshes, shipMesh, trackLights, controlMeshes, homeMeshes, pauseMeshes, creditsMeshes, outMesh, checkpointMeshes, coverMeshes } = await loadTrack()
 
   const { body: trackBody, dispose: trackDispose } = createPhysic({
     physic,
@@ -47,6 +47,7 @@ export async function createTrack({ physic, render }: { physic: Physic, render: 
   trackMesh.receiveShadow = true;
   trackMesh.castShadow = true;
 
+  cleanMenu(coverMeshes)
   cleanMenu(controlMeshes)
   cleanMenu(homeMeshes)
   cleanMenu(creditsMeshes)
@@ -138,6 +139,7 @@ export async function createTrack({ physic, render }: { physic: Physic, render: 
     outBody: outData.body,
 
     controlMeshes,
+    coverMeshes,
     homeMeshes,
     creditsMeshes,
     pauseMeshes,
